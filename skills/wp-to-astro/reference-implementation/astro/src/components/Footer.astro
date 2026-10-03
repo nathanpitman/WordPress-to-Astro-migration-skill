@@ -1,0 +1,7 @@
+---
+// Site footer (verbatim); only the nav "current item" classes differ per page.
+import { chrome, applyPatches, type PageRecord } from '../lib/data';
+interface Props { page: PageRecord }
+const { page } = Astro.props;
+---
+<Fragment set:html={applyPatches(chrome.footerBase, page.footerPatches)} />

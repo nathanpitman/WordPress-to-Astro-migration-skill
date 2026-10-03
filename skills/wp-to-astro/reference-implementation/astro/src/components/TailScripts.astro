@@ -1,0 +1,12 @@
+---
+// Everything after the footer: closing #app wrapper, notification popup, speculation rules, cookie banner,
+// HubSpot, WordPress/Gravity Forms/theme script bundles and Livewire, as an ordered list per page.
+import { tailRegistry, type PageRecord } from '../lib/data';
+interface Props { page: PageRecord }
+const { page } = Astro.props;
+---
+{page.tail.map((e) =>
+  typeof e === 'string' ? <Fragment set:html={tailRegistry[e]} /> : <Fragment set:html={e.raw} />
+)}
+<!-- Replaces Livewire search/filter/load-more on a static host: see public/js/site-search.js -->
+<script is:inline src="/js/site-search.js" defer></script>

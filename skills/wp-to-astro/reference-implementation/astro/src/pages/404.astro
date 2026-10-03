@@ -1,0 +1,7 @@
+---
+// The themed WordPress 404 page, emitted as /404.html (record path /404/; excluded from the dynamic route).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadPages } from '../lib/data';
+const { record, main } = loadPages().find((p) => p.record.path === '/404/')!;
+---
+<BaseLayout page={record} main={main} />

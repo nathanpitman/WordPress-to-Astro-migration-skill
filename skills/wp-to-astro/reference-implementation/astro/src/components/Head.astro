@@ -1,0 +1,13 @@
+---
+// <head> contents: shared fragments (analytics, icons, stylesheets, plugin assets) referenced by id,
+// page-specific raw items, and the SEO block, in the order WordPress emitted them.
+import SeoMeta from './SeoMeta.astro';
+import { headRegistry, type PageRecord } from '../lib/data';
+interface Props { page: PageRecord }
+const { page } = Astro.props;
+---
+{page.head.map((e) =>
+  typeof e === 'string' ? <Fragment set:html={headRegistry[e]} /> :
+  'seo' in e ? <SeoMeta items={page.seo} /> :
+  <Fragment set:html={e.raw} />
+)}
