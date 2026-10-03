@@ -5,7 +5,7 @@ The aim: the model **runs** tooling and **interprets** the results; it does not 
 ## Rules for every command
 
 - Reads `wordpress-to-astro.config.json` for origin, scope, hosting layers, dynamic components and options (`policies/run-state.md`); no site-specific constants in code.
-- Idempotent and safe to re-run. Writes generated data only to files it owns (for example `src/data/pages/`, `.crawl-cache/`, `docs/*.json`); never deletes hand-maintained files.
+- Idempotent and safe to re-run. Writes generated data only to files it owns (for example `src/data/pages/`, `.crawl-cache/`, `docs/*.json`); never deletes hand-maintained files. Records each generated file's SHA-256 in `docs/generated-manifest.json`, and before overwriting one, refuses if its hash no longer matches (a local edit): it writes `<name>.updated` instead (`policies/updating-a-run.md`).
 - Reads the crawl cache, not the live site, except `crawl`, `download-assets` and the optional submit-forms step.
 - Exits non-zero when it finds a failure, and prints a short summary (counts, first problems).
 - Generated tables in `docs/*.md` go between markers (`<!-- generated:start name -->` … `<!-- generated:end -->`) so the model can write narrative around them and re-generate without losing it. The model writes the narrative, the findings that need judgement and the decisions; scripts write the tables and counts.

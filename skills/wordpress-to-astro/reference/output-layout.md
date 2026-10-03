@@ -4,7 +4,8 @@
 wordpress-to-astro.config.json         # intake answers and detected stack, read by the scripts (hand-maintained)
 docs/
   platform-features.md       # every WordPress feature found: plain-English purpose, translate-or-drop verdict, Astro approach
-  run-state.json             # stage and phase status, open decisions, counts (resume point)
+  run-state.json             # stage and phase status, skill version, open decisions, counts (resume point)
+  generated-manifest.json    # path -> SHA-256 of every generated file, so updates can spot local edits
   baseline.md                # stack fingerprint, origin-markup definition, comparison contract (Phase 0)
   decisions.md               # intake answers and decisions at each gate; open ones marked
   site-structure.md

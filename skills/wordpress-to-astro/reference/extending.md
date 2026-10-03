@@ -14,6 +14,8 @@ The skill is split so each part can be reviewed and changed on its own.
 | The local review server | `reference/local-review.md` (spec) and `reference-implementation/scripts/review-server.mjs` |
 | The visual check against the live site | `reference/visual-comparison.md` and `reference-implementation/scripts/visual-fingerprint.js` |
 
+**Releasing a change.** Any edit that alters what a run produces needs a `CHANGELOG.md` entry naming the phases it affects, and a bump of `version` in `SKILL.md` and of `SKILL_VERSION` in `reference-implementation/scripts/stamp.py` (MAJOR: comparison contract or output layout; MINOR: phase behaviour; PATCH: wording only). That entry is what lets `policies/updating-a-run.md` tell an existing migration which phases are stale. If you add or move a phase output, update the dependency table in that policy too.
+
 **Adding a phase.** Create `phases/NN-name.md`, add one row to the phase table in `SKILL.md` and say which stage it belongs to in `stages/`, add its output file to `reference/output-layout.md`, and mention it in the Finishing index if it adds headline numbers. Keep the rule that every phase ends at a review gate.
 
 **Adding an option** (like `--submit-forms`). Document it in the Options table in `SKILL.md`, describe the behaviour in the phase it affects, add any new doc to the output layout, and add a matching "never" to the hard rules so the default stays safe.

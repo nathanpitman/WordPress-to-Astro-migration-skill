@@ -9,6 +9,7 @@ Ownership (how the skill's public/images/<type>/<slug>/ layout WOULD group them;
 import collections, json, os, re, sys, urllib.parse as up
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, CACHE, O
+import stamp
 
 inv = json.load(open(os.path.join(CACHE, 'assets-inventory.json')))
 mp = os.path.join(ROOT, 'docs/assets-manifest.json'); m = json.load(open(mp))
@@ -31,7 +32,7 @@ for u, e in m.items():
     ext = u.split('?')[0].rsplit('.', 1)[-1].lower(); ct = e['contentType'].split(';')[0]
     exp = {'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png'}.get(ext)
     if exp and exp != ct: ctypes['/' + up.unquote(up.urlsplit(u).path).lstrip('/')] = ct
-json.dump(m, open(mp, 'w'), indent=0)
-json.dump({'description': 'Files whose real type differs from their extension. The live site serves WebP data (Content-Type: image/webp, Vary: Accept) at these .jpg/.png URLs; a host should send the listed Content-Type to match.', 'contentTypes': ctypes},
-          open(os.path.join(ROOT, 'src/data/asset-content-types.json'), 'w'), indent=0)
+stamp.write_json(mp, m, indent=0)
+stamp.write_json(os.path.join(ROOT, 'src/data/asset-content-types.json'), {'description': 'Files whose real type differs from their extension. The live site serves WebP data (Content-Type: image/webp, Vary: Accept) at these .jpg/.png URLs; a host should send the listed Content-Type to match.', 'contentTypes': ctypes}, indent=0)
+stamp.script_ran(9)
 print(counts, len(ctypes), 'content-type overrides')

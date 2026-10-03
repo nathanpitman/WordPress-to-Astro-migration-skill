@@ -11,7 +11,7 @@ TODO comments inserted above forms. Everything else is carried over byte-for-byt
 import collections, difflib, hashlib, json, os, re, shutil, sys, urllib.parse as up
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, O, load_pages, seg, mask
-import deopt
+import deopt, stamp
 
 SRC = os.path.join(ROOT, 'src')
 TOK = re.compile(r'<!--.*?-->|<script\b[^>]*>.*?</script>|<style\b[^>]*>.*?</style>|<noscript\b[^>]*>.*?</noscript>|<title\b[^>]*>.*?</title>|<(?:meta|link|base)\b[^>]*>', re.S)
@@ -177,7 +177,7 @@ def main():
 
     records = {}
     content_dir = os.path.join(SRC, 'content')
-    shutil.rmtree(content_dir, ignore_errors=True)
+    stamp.clean(content_dir)  # removes only files this script wrote and nobody has edited
     stats = collections.Counter()
     for u in sorted(S):
         s = S[u]
@@ -226,25 +226,24 @@ def main():
         slug = slug_of(u)
         rel = slug + '.html'
         fp = os.path.join(content_dir, rel)
-        os.makedirs(os.path.dirname(fp), exist_ok=True)
-        open(fp, 'w', encoding='utf8').write(main_html)
+        stamp.write(fp, main_html)
         rec['content'] = rel
         records[u] = rec
 
     # ---- write data
     data = os.path.join(SRC, 'data')
-    shutil.rmtree(os.path.join(data, 'pages'), ignore_errors=True)  # only generated files; redirects/rewrites/asset data live beside them
-    os.makedirs(os.path.join(data, 'pages'))
-    json.dump({'headerBase': hdr_base, 'footerBase': ftr_base, **chrome}, open(os.path.join(data, 'chrome.json'), 'w'), ensure_ascii=False, indent=1)
-    json.dump(head_reg, open(os.path.join(data, 'head-items.json'), 'w'), ensure_ascii=False, indent=1)
-    json.dump(tail_reg, open(os.path.join(data, 'tail-items.json'), 'w'), ensure_ascii=False, indent=1)
+    stamp.clean(os.path.join(data, 'pages'))  # only generated files; redirects/rewrites/asset data live beside them
+    stamp.write_json(os.path.join(data, 'chrome.json'), {'headerBase': hdr_base, 'footerBase': ftr_base, **chrome}, ensure_ascii=False, indent=1)
+    stamp.write_json(os.path.join(data, 'head-items.json'), head_reg, ensure_ascii=False, indent=1)
+    stamp.write_json(os.path.join(data, 'tail-items.json'), tail_reg, ensure_ascii=False, indent=1)
     for u, rec in records.items():
         name = rec['content'].replace('.html', '').replace(os.sep, '__') + '.json'
-        json.dump(rec, open(os.path.join(data, 'pages', name), 'w'), ensure_ascii=False, indent=1)
+        stamp.write_json(os.path.join(data, 'pages', name), rec, ensure_ascii=False, indent=1)
     print('pages', len(records), 'head registry', len(head_reg), 'tail registry', len(tail_reg), 'forms', stats['forms'])
     print('header patches:', sum(1 for r in records.values() if r['headerPatches']), 'footer patches:', sum(1 for r in records.values() if r['footerPatches']))
     print('inline head raw items:', sum(1 for r in records.values() for e in r['head'] if isinstance(e, dict) and 'raw' in e), 'inline tail raw items:', sum(1 for r in records.values() for e in r['tail'] if isinstance(e, dict)))
     json.dump(dict(deopt.STATS), open(os.path.join(ROOT, '.crawl-cache', 'deopt-stats.json'), 'w'), indent=1)
+    stamp.script_ran(5)
 
 
 if __name__ == '__main__':
