@@ -50,9 +50,9 @@ The skill is versioned (`version` in `SKILL.md`, history in `CHANGELOG.md`). Whe
 | `skills/wordpress-to-astro/stages/`, `phases/` | Five stages made of 13 phases, each read in full when reached |
 | `skills/wordpress-to-astro/policies/` | Crawler identity and scope, run state, review gates, suspicious code, and more |
 | `skills/wordpress-to-astro/reference/` | Background and contracts (tooling, output layout, visual comparison, scale) |
-| `skills/wordpress-to-astro/reference-implementation/` | Python/Node scripts and Astro files from a real migration, to copy and adapt |
+| `skills/wordpress-to-astro/reference-implementation/` | Config-driven Python/Node scripts and Astro files for a typical WordPress site, with a synthetic test site, to copy and adapt |
 
-The reference implementation was run on one site (Roots Sage/Acorn, Yoast, Gravity Forms, Livewire, WP Rocket, Cloudflare). Treat it as a worked example, not an authoritative tool; some scripts carry site-specific constants.
+The reference implementation targets a typical WordPress setup and has been tested end to end only on a synthetic stock-WordPress site. Treat it as a worked example, not an authoritative tool; hosting-layer reversals in particular cover only WP Rocket and Cloudflare so far.
 
 ## Responsible use
 

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Every own-domain /app/** and /wp/** asset URL found in the built HTML and CSS must exist in dist/ at the same path.
+"""Every own-domain asset URL under the configured prefixes (default /wp-content/ and /wp-includes/) found in the built HTML and CSS must exist in dist/ at the same path.
 Usage: npm run build && python3 scripts/check_assets.py"""
 import glob, os, re, sys, urllib.parse as up
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ORIGIN = os.environ['SITE_ORIGIN'].rstrip('/')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from config import CFG, ROOT, ORIGIN, require_origin
+require_origin()
+PREFIXES = '|'.join(re.escape(p.rstrip('/')) for p in CFG['assets']['prefixes'])
 D = os.path.join(ROOT, 'dist')
-pat = re.compile(r'(?:' + re.escape(ORIGIN) + r')?(/(?:app|wp|wp-content|wp-includes)/[^\s"\'<>)\\,{}]+?\.(?:jpe?g|png|gif|svg|webp|avif|ico|js|css|pdf|woff2?|ttf|otf|eot))(?=[\s"\'<>)\\,?#&;]|$)', re.I)
+pat = re.compile(r'(?:' + re.escape(ORIGIN) + r')?((?:' + PREFIXES + r')/[^\s"\'<>)\\,{}]+?\.(?:jpe?g|png|gif|svg|webp|avif|ico|js|css|pdf|woff2?|ttf|otf|eot))(?=[\s"\'<>)\\,?#&;]|$)', re.I)
 missing = {}; seen = set(); files = 0
-for f in glob.glob(D + '/**/*.html', recursive=True) + glob.glob(D + '/app/**/*.css', recursive=True):
+for f in glob.glob(D + '/**/*.html', recursive=True) + glob.glob(D + '/**/*.css', recursive=True):
     base = '/' + os.path.relpath(f, D)
     t = open(f, encoding='utf8', errors='replace').read().replace('\\/', '/')
     files += 1

@@ -4,20 +4,47 @@ import hashlib, http.client, json, os, re, sys, time
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit, urldefrag, quote
 
-ORIGIN = os.environ["SITE_ORIGIN"].rstrip("/")
-HOST = ORIGIN.split("//", 1)[1]
-UA = f"wordpress-to-astro (Claude Code; run by {os.environ['CRAWLER_USER']}; crawling {HOST})"
-DELAY = 0.6  # seconds between requests (robots.txt declares no crawl-delay)
-ROOT = os.path.dirname(os.path.abspath(__file__))
-PAGES = os.path.join(ROOT, "pages")
-INDEX = os.path.join(ROOT, "crawl-index.json")
-os.makedirs(PAGES, exist_ok=True)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from config import CFG, ROOT, ORIGIN, HOST, require_origin, user_agent
 
-DISALLOWED = [re.compile(p) for p in (r"^/wp/wp-admin/(?!admin-ajax\.php)", r"^/\?s=", r"^/page/[^/]*/\?s=", r"^/search/")]
+require_origin()
+UA = user_agent()
+DELAY = CFG["crawl"]["delaySeconds"]  # seconds between requests; raise it if robots.txt declares a crawl-delay
+CACHE = os.path.join(ROOT, ".crawl-cache")
+PAGES = os.path.join(CACHE, "pages")
+INDEX = os.path.join(CACHE, "crawl-index.json")
+os.makedirs(PAGES, exist_ok=True)
+for d in ("sitemaps", "probes"):
+    os.makedirs(os.path.join(CACHE, d), exist_ok=True)
+
+# Never requested, whatever robots.txt says: the admin area (admin-ajax.php is allowed), login, internal search results.
+ALWAYS_DISALLOWED = [re.compile(p) for p in (r"^(/wp)?/wp-admin/(?!admin-ajax\.php)", r"^(/wp)?/wp-login\.php", r"^/\?s=", r"^/page/[^/]*/\?s=", r"^/search/")]
+robots_rules = []  # (is_allow, compiled pattern, length) for User-agent: *, filled from robots.txt
+
+
+def parse_robots(text):
+    """Allow/Disallow rules that apply to every crawler; the most specific (longest) matching rule wins."""
+    rules, applies = [], False
+    for line in text.splitlines():
+        line = line.split("#", 1)[0].strip()
+        if ":" not in line:
+            continue
+        field, value = (x.strip() for x in line.split(":", 1))
+        field = field.lower()
+        if field == "user-agent":
+            applies = value == "*"
+        elif applies and field in ("allow", "disallow") and value:
+            pat = re.escape(value).replace(r"\*", ".*")
+            pat = pat[:-2] + "$" if pat.endswith(r"\$") else pat
+            rules.append((field == "allow", re.compile("^" + pat), len(value)))
+    return rules
 
 
 def allowed(path_query):
-    return not any(r.search(path_query) for r in DISALLOWED)
+    if any(r.search(path_query) for r in ALWAYS_DISALLOWED):
+        return False
+    hits = [(n, a) for a, r, n in robots_rules if r.search(path_query)]
+    return not hits or max(hits)[1]
 
 
 class Links(HTMLParser):
@@ -61,7 +88,7 @@ def fetch(url):
     path = quote(sp.path or "/", safe="/%:@!$&'()*+,;=-._~")
     if sp.query:
         path += "?" + quote(sp.query, safe="/%:@!$&'()*+,;=-._~?")
-    conn = http.client.HTTPSConnection(sp.netloc, timeout=30)
+    conn = (http.client.HTTPSConnection if sp.scheme == "https" else http.client.HTTPConnection)(sp.netloc, timeout=30)  # http only for a local test fixture
     conn.request("GET", path, headers={"User-Agent": UA, "Accept": "text/html,*/*", "Accept-Encoding": "identity"})
     r = conn.getresponse()
     body = r.read()
@@ -78,12 +105,56 @@ def norm(href, base):
     return u
 
 
+def get_text(path_or_url, save_as=None):
+    """GET a same-host text resource (robots.txt, a sitemap, a feed); keeps a verbatim copy in .crawl-cache/."""
+    url = path_or_url if path_or_url.startswith("http") else ORIGIN + path_or_url
+    time.sleep(DELAY)
+    try:
+        status, _, body = fetch(url)
+    except Exception:
+        return None
+    if status != 200:
+        return None
+    if save_as:
+        os.makedirs(os.path.dirname(os.path.join(CACHE, save_as)), exist_ok=True)
+        with open(os.path.join(CACHE, save_as), "wb") as f:
+            f.write(body)
+    return body.decode("utf-8", "replace")
+
+
+def discover_sitemap_urls():
+    """robots.txt, then every sitemap it names (or the usual locations), following sitemap indexes. Returns page URLs on this host."""
+    global robots_rules
+    robots = get_text("/robots.txt", "robots.txt") or ""
+    robots_rules = parse_robots(robots)
+    todo = re.findall(r"(?im)^\s*sitemap:\s*(\S+)", robots) or [ORIGIN + p for p in ("/wp-sitemap.xml", "/sitemap_index.xml", "/sitemap.xml")]
+    urls, seen = [], set()
+    while todo:
+        sm = todo.pop(0)
+        if sm in seen or urlsplit(sm).netloc != HOST:
+            continue
+        seen.add(sm)
+        text = get_text(sm, "sitemaps" + urlsplit(sm).path)
+        if not text:
+            continue
+        for ref in re.findall(r'<\?xml-stylesheet[^>]*href="([^"]+\.xsl)"', text):  # the sitemap's own stylesheet, kept verbatim too
+            xsl = urljoin(sm, ref)
+            if urlsplit(xsl).netloc == HOST and xsl not in seen:
+                seen.add(xsl)
+                get_text(xsl, "sitemaps" + urlsplit(xsl).path)
+        locs = re.findall(r"<loc>\s*([^<]*?)\s*</loc>", text)
+        if "<sitemapindex" in text:
+            todo += locs
+        else:
+            urls += [u for u in locs if urlsplit(u).netloc == HOST]
+    for p in CFG["crawl"]["probes"]:  # feeds and similar: kept verbatim for the SEO inventory, not crawled
+        get_text(p, "probes/" + p.strip("/") + "/index.xml")
+    return list(dict.fromkeys(urls))
+
+
 def main():
     idx = json.load(open(INDEX)) if os.path.exists(INDEX) else {"pages": {}, "external": {}, "assets": {}}
-    seeds = [ORIGIN + "/"]
-    for f in ("post", "page", "course"):
-        t = open(os.path.join(ROOT, "sitemaps", f"{f}-sitemap.xml")).read()
-        seeds += re.findall(r"<loc>([^<]*)</loc>", t)
+    seeds = [ORIGIN + "/", ORIGIN + CFG["notFoundSample"]] + discover_sitemap_urls()  # the sample 404 caches the themed 404 template
     queue = []
     seen = set(idx["pages"].keys())
     for s in seeds:
@@ -155,7 +226,7 @@ def main():
                     if re.search(r"\.(jpe?g|png|gif|svg|webp|avif|pdf|zip|css|js|ico|woff2?|ttf|mp4|mp3|docx?|xlsx?|pptx?)$", us.path, re.I):
                         idx["assets"].setdefault(u, []).append(final)
                         continue
-                    if us.path.startswith("/wp-json/") or us.path.endswith("/feed/") or us.path.startswith("/wp/xmlrpc"):
+                    if us.path.startswith("/wp-json/") or us.path.endswith(("/feed/", "/feed", "/xmlrpc.php")) or us.path.startswith("/wp/xmlrpc"):
                         idx["assets"].setdefault(u, []).append(final)  # API/feed endpoints: recorded, not crawled
                         continue
                     internal.append((kind, u))

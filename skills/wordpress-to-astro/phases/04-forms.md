@@ -2,10 +2,10 @@
 
 Write `docs/forms.md`. When raising forms with the user, explain in plain English that the form plugin both shows the form and *processes* the answers (spam checks, email or CRM delivery, thank-you page), that a static site cannot process them, and what the options are (`reference/feature-translation.md`, Forms).
 
-- Find every page containing a `<form>` (including embedded form-plugin markup such as Gravity Forms, CF7, HubSpot, Salesforce web-to-lead).
+- Find every page containing a `<form>` (including embedded form-plugin markup such as Gravity Forms, Contact Form 7, WPForms, Ninja Forms, HubSpot, CRM web-to-lead).
 - For each form: page URLs, action, method, hidden fields, every field's name/type/label/required status, and the plugin or provider if identifiable. Distinguish values that are per-render tokens (nonces, signed state, captcha response fields) from stable ones.
 - Group forms that share common fields or are the same form reused across pages.
-- **Keep the form markup exactly as served.** In the Astro source, add a clearly visible comment immediately above each form: `<!-- TODO(manual): Hook this form up to Salesforce and server-side code. See docs/forms.md#<form-id> -->`. Do not wire up submission. The Astro source does not exist until Phase 5, so add the comments there. If the markup is stored as verbatim fragments, the comment will be emitted into the built HTML: log that in `docs/deviations.md` as an additive comment and have the verifier ignore it.
+- **Keep the form markup exactly as served.** In the Astro source, add a clearly visible comment immediately above each form: `<!-- TODO(manual): Hook this form up to a form handler (service or server-side code). See docs/forms.md#<form-id> -->`. Do not wire up submission. The Astro source does not exist until Phase 5, so add the comments there. If the markup is stored as verbatim fragments, the comment will be emitted into the built HTML: log that in `docs/deviations.md` as an additive comment and have the verifier ignore it.
 
 ### Optional: submit forms to capture the flow (`--submit-forms` only)
 

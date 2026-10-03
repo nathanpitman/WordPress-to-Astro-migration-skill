@@ -12,16 +12,21 @@ Written in Stage 1 from the intake answers and the baseline; read by every scrip
   "gates": "stage",
   "options": { "submitForms": false },
   "crawl": { "delaySeconds": 0.6, "concurrency": 1, "userAgent": "wordpress-to-astro (Claude Code; run by <user>; crawling example.com)" },
-  "hostingLayers": [ { "name": "wp-rocket", "detect": "data-rocket-", "reversal": "lazy-img, attrs, scripts, comments" } ],
-  "volatileTokens": [ "livewire-snapshot", "gravityforms-state", "wp-nonce" ],
-  "dynamicComponents": [ { "name": "livewire-grid", "paths": ["/courses/", "/articles/"], "urlParams": ["page", "course_category"] } ],
-  "assets": { "serve": "same-path", "prefixes": ["/app/", "/wp/"] },
+  "hostingLayers": [ "wp-rocket", "cloudflare" ],
+  "volatileTokens": [ "wp-nonce", "gravityforms-state" ],
+  "masks": [ { "name": "build-id", "pattern": "data-build=\"[0-9a-f]+\"", "replacement": "data-build=\"X\"" } ],
+  "listings": [ { "base": "/blog/", "params": ["page", "topic"] } ],
+  "templates": { "single-event": "event" },
+  "notFoundSample": "/this-page-does-not-exist/",
+  "assets": { "serve": "same-path", "prefixes": ["/wp-content/", "/wp-includes/"] },
   "css": { "mode": "verbatim" },
   "hosting": { "platform": "unknown" },
   "approvedArtefacts": [ "themed-404", "site-search-script" ],
   "scale": { "pages": 0, "sample": false }
 }
 ```
+
+What the reference scripts read from it (every key is optional except `origin`; the values above are examples, not defaults): `origin`; `crawl.delaySeconds`, `crawl.userAgent`, `crawl.probes` (feeds kept verbatim); `hostingLayers` (names of the reversals in `deopt.py`; absent means all of them); `volatileTokens` (names of the mask sets in `lib.py`; default `wp-nonce`) and `masks` (your own regex masks); `listings` (query-string listings to pre-render: only needed when a plugin or custom code paginates or filters with `?param=`, not for core `/page/2/` paths); `templates` (body class to template name); `notFoundSample`; `assets.prefixes`. A site with no hosting layer, no listings and only core pagination needs little more than `origin`.
 
 ## `docs/run-state.json`
 

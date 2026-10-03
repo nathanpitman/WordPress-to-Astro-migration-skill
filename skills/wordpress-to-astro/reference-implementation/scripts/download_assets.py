@@ -7,12 +7,14 @@ Stylesheets are skipped (already in src/styles). Writes docs/assets-manifest.jso
 import concurrent.futures as cf, hashlib, json, os, sys, time, urllib.parse as up, urllib.request, urllib.error
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, CACHE, O
+from config import user_agent
 import stamp
 
-UA = f"wordpress-to-astro (Claude Code; run by {os.environ['CRAWLER_USER']}; crawling {O.split('//', 1)[1]})"
+UA = user_agent()
 inv = json.load(open(os.path.join(CACHE, 'assets-inventory.json')))
 mf_path = os.path.join(ROOT, 'docs/assets-manifest.json')
-manifest = json.load(open(mf_path)) if os.path.exists(mf_path) else {}
+partial = os.path.join(CACHE, 'assets-manifest.partial.json')  # progress while downloading, so an interrupted run resumes
+manifest = json.load(open(next(p for p in (partial, mf_path) if os.path.exists(p)))) if os.path.exists(partial) or os.path.exists(mf_path) else {}
 
 def fetch(url):
     p = up.urlsplit(url); local = os.path.join(ROOT, 'public', up.unquote(p.path).lstrip('/'))
@@ -38,8 +40,9 @@ with cf.ThreadPoolExecutor(max_workers=3) as ex:
     for url, res in ex.map(fetch, todo):
         e = inv[url]; manifest[url] = {**res, 'kind': e['kind'], 'refs': e['refs'], 'via': e['via'], 'samplePages': e['pages']}
         n += 1
-        if n % 100 == 0: print(n, flush=True); json.dump(manifest, open(mf_path, 'w'), indent=0)
-json.dump(manifest, open(mf_path, 'w'), indent=0)
+        if n % 100 == 0: print(n, flush=True); json.dump(manifest, open(partial, 'w'), indent=0)
+stamp.write_json(mf_path, manifest, indent=0)  # through stamp, so a hand edit is kept and a re-run is not mistaken for one
+if os.path.exists(partial): os.remove(partial)
 stamp.record(*(os.path.join(ROOT, m['local']) for m in manifest.values() if m.get('local')))  # downloaded files, so later runs can spot edits
 stamp.script_ran(9)
 ok = sum(1 for m in manifest.values() if m.get('status') == 200); print('done', ok, 'ok of', len(manifest))

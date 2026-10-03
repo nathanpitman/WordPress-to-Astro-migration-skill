@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Phase 11: errors on the ORIGINAL site (record only). Writes .crawl-cache/errors.json; docs/errors.md is written by errors_report.py."""
+"""Phase 11: errors on the ORIGINAL site (record only). Writes .crawl-cache/errors.json; docs/errors.md is written from it."""
 import collections, glob, json, os, re, sys, urllib.parse as up
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, CACHE, O, load_pages
+from config import CFG
 import deopt, stamp
 
+SITEMAPS = [f for f in sorted(glob.glob(os.path.join(ROOT, 'public', '**', '*sitemap*.xml'), recursive=True)) if '<sitemapindex' not in open(f, encoding='utf8').read()]  # page sitemaps only
 idx = json.load(open(os.path.join(CACHE, 'crawl-index.json')))['pages']
 out = {}
 
@@ -21,7 +23,7 @@ for u, e in idx.items():
 broken = []
 for u, e in idx.items():
     st = e.get('status')
-    if st and st >= 400:
+    if st and st >= 400 and u != O + CFG['notFoundSample']:  # the deliberate 404 probe is not a broken link
         pages = linkers.get(u, {})
         broken.append({'url': u, 'status': st, 'links': sum(pages.values()), 'pages': sorted(pages)[:6], 'npages': len(pages)})
 out['broken'] = sorted(broken, key=lambda b: -b['links'])
@@ -88,14 +90,17 @@ out['canonicalToNoindex'] = dict(cnoindex)
 
 # ---- sitemap URLs that fail
 sm = []
-for n in ('post', 'page', 'course'):
-    t = open(os.path.join(ROOT, f'public/{n}-sitemap.xml'), encoding='utf8').read()
-    for u in re.findall(r'<loc>([^<]+)</loc>', t):
+all_locs = []
+for path in SITEMAPS:
+    n = os.path.relpath(path, os.path.join(ROOT, 'public'))
+    locs = re.findall(r'<loc>([^<]+)</loc>', open(path, encoding='utf8').read())
+    all_locs += locs
+    for u in locs:
         e = idx.get(u) or idx.get(up.unquote(u)) or next((v for k, v in idx.items() if up.unquote(k) == up.unquote(u)), None)
         if not e: sm.append({'sitemap': n, 'url': u, 'status': 'not crawled'}); continue
         if e.get('status') != 200 or len(e.get('chain', [])) > 1: sm.append({'sitemap': n, 'url': u, 'status': e.get('chain', [{}])[0].get('status'), 'to': e['final']})
 out['sitemapBad'] = sm
-dupe = collections.Counter(re.findall(r'<loc>([^<]+)</loc>', ''.join(open(os.path.join(ROOT, f'public/{n}-sitemap.xml'), encoding='utf8').read() for n in ('post', 'page', 'course'))))
+dupe = collections.Counter(all_locs)
 out['sitemapDuplicates'] = [u for u, c in dupe.items() if c > 1]
 json.dump(out, open(os.path.join(CACHE, 'errors.json'), 'w'), indent=1, default=list)
 print({k: (len(v) if hasattr(v, '__len__') else v) for k, v in out.items()})

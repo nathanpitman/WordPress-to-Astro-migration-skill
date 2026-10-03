@@ -4,7 +4,7 @@ Purpose: prove the whole chain on three pages **before** doing bulk analysis or 
 
 ## Pages
 
-Take them from the crawl cache: the home page, one single entry (a course, post or product), and one page with a form or a JavaScript component. If the site has a listing with query-string state, add one listing variant.
+Take them from the crawl cache: the home page, one single entry (a post, product or other custom type), and one page with a form or a JavaScript component. If the site has a listing with query-string state, add one listing variant.
 
 ## Run
 

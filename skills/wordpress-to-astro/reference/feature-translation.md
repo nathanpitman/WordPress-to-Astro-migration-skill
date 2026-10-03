@@ -46,7 +46,7 @@ Classification values: **Drop** (not needed), **Keep as is**, **Replace later**,
 - *Recommendation:* **Keep as is** (page bodies stored as the exact HTML); **Replace later** by turning common sections (carousel, accordion, quote form) into components or CMS blocks one at a time, verifying each.
 
 **Custom content types and fields (custom post types, Advanced Custom Fields)**
-- *Does:* gives the site its own kinds of content (courses, events, team) with their own fields.
+- *Does:* gives the site its own kinds of content (events, team members, products) with their own fields.
 - *In Astro:* typed content collections, or collections in a CMS such as Payload; the content map in `docs/content-map.md` proposes them.
 - *Recommendation:* **Replace later** when a CMS is added.
 
@@ -85,7 +85,7 @@ Classification values: **Drop** (not needed), **Keep as is**, **Replace later**,
 **Form plugins (Gravity Forms, Contact Form 7, WPForms, HubSpot forms)**
 - *Does:* shows forms, checks the answers, blocks spam, sends the submissions to email or a CRM and shows a thank-you page.
 - *Needed?* Yes, the job; no, the plugin. A static site cannot receive form data by itself.
-- *In Astro:* a form-handling service, a small serverless function that forwards to the CRM (for example Salesforce), or a CMS form builder; plus a spam check (such as Turnstile or reCAPTCHA).
+- *In Astro:* a form-handling service, a small serverless function that forwards to the CRM or email service, or a CMS form builder; plus a spam check (such as Turnstile or reCAPTCHA).
 - *Recommendation:* **Decide.** Always a decision (where do enquiries go, who is told, what are the legal terms). The migration keeps the form markup exactly and leaves a clear to-do on each form.
 
 **Spam protection (reCAPTCHA, Akismet)**

@@ -5,37 +5,41 @@ import chrome from '../data/chrome.json';
 import headItems from '../data/head-items.json';
 import tailItems from '../data/tail-items.json';
 
-export type SeoItem = string[];
-export type Entry = string | { raw: string } | { seo: true };
+export type Patch = [number, number, string];
+export type Region = 'pre' | 'header' | 'mid' | 'post' | 'footer';
+export interface SeoItem { kind: string; name: string; value: string | null; raw: string }
+export type Entry = string | { raw: string } | { seo: number };
 export interface PageRecord {
   path: string;
-  template: 'home' | 'page' | 'course' | 'post';
-  bodyClass: string;
+  /** WordPress template inferred from the body classes: home, page, post, a custom post type, archive, search, 404 */
+  template: string;
+  htmlAttrs: Record<string, string>;
+  bodyAttrs: Record<string, string>;
   head: Entry[];
   seo: SeoItem[];
-  headerPatches: [number, number, string][];
-  footerPatches: [number, number, string][];
+  patches: Record<Region, Patch[]>;
   tail: Entry[];
   content: string;
 }
 
-export { chrome };
 export const headRegistry = headItems as Record<string, string>;
 export const tailRegistry = tailItems as Record<string, string>;
 
 /** Apply [start, end, replacement] line splices (from the bottom up so indexes stay valid). */
-export function applyPatches(base: string, patches: [number, number, string][]): string {
+export function applyPatches(base: string, patches: Patch[]): string {
   if (!patches.length) return base;
   const lines = base.split('\n');
   for (const [s, e, text] of [...patches].reverse()) lines.splice(s, e - s, text);
   return lines.join('\n');
 }
 
-/** Livewire embeds the current path (JSON-escaped) in the header search component. */
-export function livewirePath(path: string): string {
-  const p = path.replace(/^\/|\/$/g, '');
-  return p ? encodeURI(decodeURI(p)).replace(/%[0-9a-f]{2}/gi, (m) => m.toUpperCase()).replace(/\//g, '\\/') : '\\/';
+/** One page's markup for a region: the shared base variant plus this page's differences. */
+export function region(page: PageRecord, name: Region): string {
+  return applyPatches((chrome as Record<Region, string>)[name], page.patches[name]);
 }
+
+/** The one approved client script (search / load-more on a static host) is only emitted when the file exists. */
+export const hasSearchScript = fs.existsSync(path.resolve('public/js/site-search.js'));
 
 /** Read the page records and verbatim <main> files from disk at build time (nothing is bundled into the server chunk). */
 export function loadPages() {
