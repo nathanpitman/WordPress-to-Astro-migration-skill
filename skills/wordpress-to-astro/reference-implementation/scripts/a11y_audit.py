@@ -103,9 +103,18 @@ def walk_desc(n):
 
 
 NONDESC = re.compile(r'^(click here|here|read more|learn more|more|find out more|view more|view|link|more info|details|load more…?|load more\.*)$', re.I)
-RGB = {}
-css = open(os.path.join(ROOT, 'src/styles/theme/app.css'), encoding='utf8').read()
-for name, v in re.findall(r'--tw-color-([a-z0-9-]+):(\d+ \d+ \d+)', css): RGB[name] = tuple(int(x) for x in v.split())
+RGB = {'white': (255, 255, 255)}
+# Colour tokens for the indicative contrast check, read from the site's stylesheets in src/styles/ (Phase 6):
+#   WordPress presets   --wp--preset--color--<slug>: #rrggbb      used via has-<slug>-color / has-<slug>-background-color
+#   Tailwind-style      --tw-color-<name>: r g b                   used via text-<name> / bg-<name>
+# With no stylesheets or no tokens the contrast check simply finds nothing to compare.
+for _f in glob.glob(os.path.join(ROOT, 'src/styles/**/*.css'), recursive=True):
+    _css = open(_f, encoding='utf8', errors='replace').read()
+    for name, v in re.findall(r'--tw-color-([a-z0-9-]+):\s*(\d+ \d+ \d+)', _css): RGB[name] = tuple(int(x) for x in v.split())
+    for name, v in re.findall(r'--wp--preset--color--([a-z0-9-]+):\s*#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b', _css):
+        v = ''.join(c * 2 for c in v) if len(v) == 3 else v
+        RGB[name] = tuple(int(v[i:i + 2], 16) for i in (0, 2, 4))
+WP_COLOR = re.compile(r'has-([a-z0-9-]+)-(color|background-color)')
 
 
 def lum(c):
@@ -127,6 +136,8 @@ def color_of(n, prefix):
         if prefix == 'bg' and (re.search(r'background', x.attrs.get('style', '')) or any(c.startswith(('bg-[', 'bg-gradient', 'bg-cover', 'bg-opacity')) or ':bg-' in c and False for c in classes(x))):
             return '?'  # background set by an arbitrary value, gradient, image or inline style: not resolvable from classes
         for c in classes(x):
+            m = WP_COLOR.fullmatch(c)
+            if m and (prefix == 'bg') == (m.group(2) == 'background-color') and m.group(1) in RGB: return m.group(1)
             if c.startswith(prefix + '-') and ':' not in c and '[' not in c and c[len(prefix) + 1:] in RGB:
                 return c[len(prefix) + 1:]
         x = x.parent
@@ -150,7 +161,7 @@ def audit(tree, ids, region, page, F):
             elif NONDESC.match(nm): add('link-text-non-descriptive', '2.4.4', 'moderate', n, 'Make link text describe the destination, or add aria-label/aria-describedby.', f'"{nm}" -> {a["href"][-60:]}')
         if t == 'a' and 'href' not in a and not a.get('role') and own_text(n): add('anchor-without-href', '2.1.1', 'minor', n, 'Anchor without href is not focusable; use a button or add href.')
         if t == 'button':
-            if not accname(n, ids): add('button-empty-name', '4.1.2', 'serious', n, 'Give the button an accessible name (aria-label or visible text).', a.get('wire:click', a.get('class', ''))[:60])
+            if not accname(n, ids): add('button-empty-name', '4.1.2', 'serious', n, 'Give the button an accessible name (aria-label or visible text).', a.get('class', '')[:60])
         if re.fullmatch(r'h[1-6]', t):
             heads.append((int(t[1]), n))
             if not own_text(n) and not any(x.tag == 'img' and x.attrs.get('alt') for x in walk_desc(n)): add('heading-empty', '2.4.6', 'moderate', n, 'Empty heading: remove or add text.')
@@ -187,7 +198,7 @@ def audit(tree, ids, region, page, F):
             if r not in valid: add('aria-invalid-role', '4.1.2', 'moderate', n, 'Invalid ARIA role.', 'role=' + r)
             if r in ('button', 'link') and t not in ('a', 'button', 'input') and 'tabindex' not in a: add('aria-role-not-focusable', '2.1.1 / 4.1.2', 'serious', n, 'Elements with role=button/link must be focusable (tabindex) and keyboard operable.', 'role=' + r)
             if r == 'dialog' and not (a.get('aria-label') or a.get('aria-labelledby')): add('dialog-no-name', '4.1.2', 'moderate', n, 'Dialogs need an accessible name.')
-        if t in ('div', 'span', 'li', 'p', 'section') and any(k in a for k in ('onclick', 'wire:click')) and 'role' not in a and 'tabindex' not in a:
+        if t in ('div', 'span', 'li', 'p', 'section') and 'onclick' in a and 'role' not in a and 'tabindex' not in a:
             add('click-on-non-interactive', '2.1.1', 'serious', n, 'Click handler on a non-interactive element: not keyboard accessible.')
         if t == 'iframe' and not a.get('title') and not a.get('aria-label') and 'display:none' not in a.get('style', '').replace(' ', ''):
             add('iframe-no-title', '4.1.2 / 2.4.1', 'serious', n, 'Give the iframe a title.', a.get('src', '')[:70])
@@ -225,9 +236,9 @@ def main():
     tail_reg = json.load(open(os.path.join(ROOT, 'src/data/tail-items.json')))
     F = []; per_page = {}
     # ---- shared regions, once
-    hdr = chrome['headerBase'].replace('{{LW_PATH}}', 'x'); ftr = chrome['footerBase']
+    hdr = chrome['header']; ftr = chrome['footer']
     tail_html = '\n'.join(v for k, v in tail_reg.items() if not v.startswith('<script') and not v.startswith('<!--'))
-    shared = {'Header': hdr, 'Footer': ftr, 'Pre-header (skip link)': chrome['pre'], 'Cookie banner and popups (tail)': tail_html}
+    shared = {'Header': hdr, 'Footer': ftr, 'Before the header (skip link)': chrome['pre'], 'Between header and main': chrome['mid'], 'Between main and footer': chrome['post'], 'Cookie banner and popups (tail)': tail_html}
     ids_shared = {}
     for name, html in shared.items(): ids_shared.update({n.attrs['id']: n for n in parse(html).all if n.attrs.get('id')})
     sf = []
@@ -243,9 +254,10 @@ def main():
             i = n.attrs.get('id')
             if i: dup[i] += 1; ids[i] = n
         main_t = parse(s['main'])
+        main_ids = {n.attrs.get('id') for n in main_t.all}
         audit(main_t, ids, 'Main content', path, pf)
         for i, c in dup.items():
-            if c > 1: pf.append({'rule': 'duplicate-id', 'wcag': '4.1.1 (obsolete in WCAG 2.2) / 1.3.1', 'severity': 'moderate', 'region': 'Main content' if i.startswith(('gform', 'input_', 'field_', 'label_', 'choice_', 'validation_')) else 'Whole page', 'page': path, 'selector': '#' + i, 'detail': f'{c} elements share the id', 'note': 'IDs must be unique; duplicated ids break label association and ARIA references.'})
+            if c > 1: pf.append({'rule': 'duplicate-id', 'wcag': '4.1.1 (obsolete in WCAG 2.2) / 1.3.1', 'severity': 'moderate', 'region': 'Main content' if i in main_ids else 'Whole page', 'page': path, 'selector': '#' + i, 'detail': f'{c} elements share the id', 'note': 'IDs must be unique; duplicated ids break label association and ARIA references.'})
         # document-level
         nmain = len([n for n in full.all if n.tag == 'main'])
         navs = [n for n in full.all if n.tag == 'nav']

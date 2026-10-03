@@ -3,22 +3,22 @@ import Head from '../components/Head.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import TailScripts from '../components/TailScripts.astro';
-import { chrome, type PageRecord } from '../lib/data';
+import { region, type PageRecord } from '../lib/data';
 interface Props { page: PageRecord; main: string }
 const { page, main } = Astro.props;
 ---
 <!DOCTYPE html>
-<html lang="en-GB">
+<html {...page.htmlAttrs}>
   <head>
     <Head page={page} />
   </head>
 
-  <body class={page.bodyClass}>
-    <Fragment set:html={chrome.pre} />
+  <body {...page.bodyAttrs}>
+    <Fragment set:html={region(page, 'pre')} />
     <Header page={page} />
-    <Fragment set:html={chrome.mid} />
+    <Fragment set:html={region(page, 'mid')} />
     <Fragment set:html={main} />
-    <Fragment set:html={chrome.post} />
+    <Fragment set:html={region(page, 'post')} />
     <Footer page={page} />
     <TailScripts page={page} />
   </body>

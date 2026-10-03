@@ -25,7 +25,7 @@
 
 ## Example
 
-Poor: "Livewire snapshot tokens are per-render so we mask them in the comparison contract. Do you want the Rocket layer reversed?"
+Poor: "Nonce tokens are per-render so we mask them in the comparison contract. Do you want the Rocket layer reversed?"
 
 Good: "Your site runs a speed tool (WP Rocket) that rewrites each page before it reaches visitors, so the same page can look slightly different in the source on different visits. A static site does not need it, because pages are built once and served fast. I recommend rebuilding pages without its changes; visitors will not see any difference, and search engines see the same content. If you would rather keep its exact output I can, but it adds a lot of fiddly code. OK to go without it? (Default: yes.)"
 

@@ -45,7 +45,7 @@ The index must contain:
 - The contents of `docs/deviations.md`, summarised, and a summary of `docs/recommended-fixes.md` (counts by type and phase, with the highest-impact entries listed first)
 - **Platform features and recommendations:** the table from `docs/platform-features.md` condensed (what each WordPress feature did, the verdict, the recommended Astro way), grouped into Drop, Keep as is, Replace later, Replace now and Decide
 - Open decisions from `docs/decisions.md`
-- Manual follow-up: form wiring to Salesforce and code, Payload modelling, cutover redirects, host configuration (rewrites, headers, content types), and anything ambiguous that was logged during the run
+- Manual follow-up: form wiring to a form handler, Payload modelling, cutover redirects, host configuration (rewrites, headers, content types), and anything ambiguous that was logged during the run
 
 Then give the user a short version of the same summary in chat, with the path to the index file.
 

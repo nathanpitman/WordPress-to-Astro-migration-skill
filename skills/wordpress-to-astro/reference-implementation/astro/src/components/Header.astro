@@ -1,9 +1,8 @@
 ---
-// Site header and primary navigation (verbatim). Per-page differences are nav "current item" classes,
-// stored as line patches on the page record, plus the path inside the Livewire search snapshot.
-import { chrome, applyPatches, livewirePath, type PageRecord } from '../lib/data';
+// Site header and primary navigation (verbatim). Per-page differences, usually the nav "current item"
+// classes, are stored as line patches on the page record.
+import { region, type PageRecord } from '../lib/data';
 interface Props { page: PageRecord }
 const { page } = Astro.props;
-const html = applyPatches(chrome.headerBase, page.headerPatches).replaceAll('{{LW_PATH}}', livewirePath(page.path));
 ---
-<Fragment set:html={html} />
+<Fragment set:html={region(page, 'header')} />

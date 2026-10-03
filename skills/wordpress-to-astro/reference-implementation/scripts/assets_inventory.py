@@ -7,6 +7,7 @@ Writes .crawl-cache/assets-inventory.json  {url: {kind, ext, host, refs: n, via:
 import collections, glob, json, os, re, sys, urllib.parse as up
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, CACHE, O
+from config import CFG
 
 HOST = O.split('//', 1)[1]
 IMG = {'jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'avif', 'ico'}
@@ -53,7 +54,7 @@ def scan_html(text, page):
     for m in re.finditer(r'<(?:video|audio)\b[^>]*\ssrc=["\']([^"\']+)', text): add(m.group(1), 'media src', page)
     for m in re.finditer(r'"(?:url|contentUrl|thumbnailUrl|logo|image)":\s*"(https?:[^"]+)"', text): add(m.group(1), 'json-ld', page)
     for m in re.finditer(r'<image:loc>([^<]+)', text): add(m.group(1), 'sitemap image', page)
-    for m in re.finditer(re.escape(O) + r'/(?:app|wp|wp-content|wp-includes)/[^\s"\'<>)\\,{}]+?\.(?:jpe?g|png|gif|svg|webp|avif|ico|js|css|pdf|woff2?|ttf|otf|eot)(?=[\s"\'<>)\\,?#&;]|$)', text, re.I): add(m.group(0), 'inline text', page)
+    for m in re.finditer(re.escape(O) + '(?:' + '|'.join(re.escape(p.rstrip('/')) for p in CFG['assets']['prefixes']) + r')/[^\s"\'<>)\\,{}]+?\.(?:jpe?g|png|gif|svg|webp|avif|ico|js|css|pdf|woff2?|ttf|otf|eot)(?=[\s"\'<>)\\,?#&;]|$)', text, re.I): add(m.group(0), 'inline text', page)
 
 def main():
     for f in sorted(glob.glob(os.path.join(ROOT, 'src/content/**/*.html'), recursive=True)):
@@ -63,16 +64,19 @@ def main():
         for v in (d.values() if isinstance(d, dict) else []):
             if isinstance(v, str): scan_html(v, f)
     for f in glob.glob(os.path.join(ROOT, 'src/data/pages/*.json')):
+        r = json.load(open(f))
+        for k, patches in r.get('patches', {}).items():  # text that only exists in a per-page patch (e.g. a page-specific header image)
+            for _, _, text in patches: scan_html(text, r['path'])
+    for f in glob.glob(os.path.join(ROOT, 'src/data/pages/*.json')):
         r = json.load(open(f)); pg = r['path']
         for e in r['head']:
             if isinstance(e, dict) and 'raw' in e: scan_html(e['raw'], pg)
-        for it in r['seo']:
-            if it[0] == 'jsonld': scan_html(it[1], pg)
-            elif it[0] == 'property' and it[1] in ('og:image', 'twitter:image'): add(it[2], 'meta image', pg)
+        for it in r['seo']: scan_html(it['raw'], pg)  # og:image, twitter:image and JSON-LD images are found in the raw markup
         for e in r['tail']:
             if isinstance(e, dict): scan_html(e['raw'], pg)
     for f in glob.glob(os.path.join(ROOT, 'public/*sitemap.xml')): scan_html(open(f, encoding='utf8').read(), os.path.basename(f))
-    m = json.load(open(os.path.join(ROOT, 'src/styles/manifest.json')))
+    mp = os.path.join(ROOT, 'src/styles/manifest.json')  # written in Phase 6; absent until then
+    m = json.load(open(mp)) if os.path.exists(mp) else {'stylesheets': []}
     for s in m['stylesheets']:
         base = O + s['servedPath']
         css = open(os.path.join(ROOT, s['source']), encoding='utf8').read()

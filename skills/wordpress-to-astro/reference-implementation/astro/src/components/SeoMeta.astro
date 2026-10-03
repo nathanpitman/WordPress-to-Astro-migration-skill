@@ -1,19 +1,9 @@
 ---
-// Yoast SEO block: robots, title, description, canonical, Open Graph, Twitter and the schema graph.
-// Rendered in the same order and with the same quoting as the WordPress output.
+// One SEO head item (title, description, robots, canonical, Open Graph, Twitter, JSON-LD, or an SEO plugin's
+// own comment), emitted exactly as the SEO plugin wrote it. `kind`, `name` and `value` are parsed for the CMS
+// modelling phase; the markup comes from `raw` so quoting, order and spacing are the origin's.
 import type { SeoItem } from '../lib/data';
-interface Props { items: SeoItem[] }
-const { items } = Astro.props;
-const render = (it: SeoItem): string => {
-  switch (it[0]) {
-    case 'robots': return `<meta name='robots' content='${it[1]}' />`;
-    case 'title': return `<title>${it[1]}</title>`;
-    case 'description': return `<meta name="description" content="${it[1]}" />`;
-    case 'canonical': return `<link rel="canonical" href="${it[1]}" />`;
-    case 'property': return `<meta property="${it[1]}" content="${it[2]}" />`;
-    case 'name': return `<meta name="${it[1]}" content="${it[2]}" />`;
-    default: return it[1]; // comments and the JSON-LD graph are carried verbatim
-  }
-};
+interface Props { item: SeoItem }
+const { item } = Astro.props;
 ---
-<Fragment set:html={items.map(render).join('\n')} />
+<Fragment set:html={item.raw} />

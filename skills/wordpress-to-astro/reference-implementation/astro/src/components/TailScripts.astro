@@ -1,12 +1,11 @@
 ---
-// Everything after the footer: closing #app wrapper, notification popup, speculation rules, cookie banner,
-// HubSpot, WordPress/Gravity Forms/theme script bundles and Livewire, as an ordered list per page.
-import { tailRegistry, type PageRecord } from '../lib/data';
+// Everything after the footer, as an ordered list per page: closing wrappers, popups, cookie banners,
+// analytics and the theme/plugin script bundles.
+import { tailRegistry, hasSearchScript, type PageRecord } from '../lib/data';
 interface Props { page: PageRecord }
 const { page } = Astro.props;
 ---
 {page.tail.map((e) =>
   typeof e === 'string' ? <Fragment set:html={tailRegistry[e]} /> : <Fragment set:html={e.raw} />
 )}
-<!-- Replaces Livewire search/filter/load-more on a static host: see public/js/site-search.js -->
-<script is:inline src="/js/site-search.js" defer></script>
+{hasSearchScript && <Fragment set:html={'<!-- Static-host search/filter script: see public/js/site-search.js -->\n<script src="/js/site-search.js" defer></script>'} />}

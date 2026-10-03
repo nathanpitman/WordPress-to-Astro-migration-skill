@@ -5,23 +5,32 @@ Reads  .crawl-cache/  (raw HTML, not committed)
 Writes src/data/**    (shared registries + one record per page)
        src/content/** (the verbatim <main> element of every page, one .html file each)
 
-The only transformations applied to the served HTML are listed in deopt.py (hosting layers) and the
-TODO comments inserted above forms. Everything else is carried over byte-for-byte.
+A page is split at its <header>, <main> and <footer> landmarks into five regions (pre, header, mid, post,
+footer) plus <head> and the tail after the footer. Each region is stored once as a base variant (the most common
+form) with per-page line patches for the differences (typically the "current menu item" classes). <head> and
+tail items that repeat across pages become shared fragments referenced by id.
+
+The only transformations applied to the served HTML are listed in deopt.py (hosting layers) and the TODO
+comments inserted above forms. Everything else is carried over byte-for-byte.
 """
-import collections, difflib, hashlib, json, os, re, shutil, sys, urllib.parse as up
+import collections, difflib, hashlib, html, json, os, re, sys, urllib.parse as up
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import ROOT, O, load_pages, seg, mask
+from config import CFG
+from lib import ROOT, O, PUBLIC, load_pages, seg, mask
 import deopt, stamp
 
 SRC = os.path.join(ROOT, 'src')
+REGIONS = ('pre', 'header', 'mid', 'post', 'footer')
 TOK = re.compile(r'<!--.*?-->|<script\b[^>]*>.*?</script>|<style\b[^>]*>.*?</style>|<noscript\b[^>]*>.*?</noscript>|<title\b[^>]*>.*?</title>|<(?:meta|link|base)\b[^>]*>', re.S)
 TAIL_TOK = re.compile(r'<!--.*?-->|<script\b[^>]*>.*?</script>|<style\b[^>]*>.*?</style>', re.S)
+
+
 def nk(t):
     """comparison key: per-render tokens masked, whitespace collapsed"""
     return re.sub(r'\s+', ' ', mask(t))
 
 
-FORM_TODO = '<!-- TODO(manual): Hook this form up to Salesforce and server-side code. See docs/forms.md#{fid} -->'
+FORM_TODO = '<!-- TODO(manual): Hook this form up to a form handler (service or server-side code). See docs/forms.md#{fid} -->'
 
 
 def split_items(text, tok):
@@ -38,63 +47,51 @@ def split_items(text, tok):
     return out
 
 
-def h6(s):
-    return hashlib.md5(s.encode()).hexdigest()[:6]
-
-
-def item_id(raw, used):
-    """Readable id for a registry item: script/link/style id attribute, comment text, else tag + hash."""
+def item_id(raw):
+    """Readable id for a registry item: script/link/style id attribute, comment text, else tag (+ script file name)."""
     m = re.match(r"<(script|link|style)\b[^>]*?\bid=['\"]([^'\"]+)['\"]", raw)
     if m:
-        base = re.sub(r'[^A-Za-z0-9_-]+', '-', m.group(2)).strip('-')
-    elif raw.startswith('<!--'):
-        base = 'comment-' + re.sub(r'[^a-z0-9]+', '-', re.sub(r'<!--|-->', '', raw).strip().lower())[:40].strip('-')
-    else:
-        tag = re.match(r'<(\w+)', raw)
-        base = (tag.group(1) if tag else 'html')
-        if base == 'script':
-            ms = re.search(r'src=["\']([^"\']+)', raw[:300])
-            if ms:
-                base = 'script-' + re.sub(r'[^a-z0-9]+', '-', ms.group(1).split('?')[0].split('/')[-1].lower()).strip('-')[:30]
+        return re.sub(r'[^A-Za-z0-9_-]+', '-', m.group(2)).strip('-')
+    if raw.startswith('<!--'):
+        return 'comment-' + re.sub(r'[^a-z0-9]+', '-', re.sub(r'<!--|-->', '', raw).strip().lower())[:40].strip('-')
+    tag = re.match(r'<(\w+)', raw)
+    base = tag.group(1) if tag else 'html'
+    if base == 'script':
+        ms = re.search(r'src=["\']([^"\']+)', raw[:300])
+        if ms:
+            base = 'script-' + re.sub(r'[^a-z0-9]+', '-', ms.group(1).split('?')[0].split('/')[-1].lower()).strip('-')[:30]
     return base
 
 
-# ---------------------------------------------------------------- SEO block
-META_FMT = {
-    'robots': "<meta name='robots' content='{v}' />",
-    'description': '<meta name="description" content="{v}" />',
-}
+# ---------------------------------------------------------------- SEO items
+# Whatever SEO plugin wrote them (Yoast, Rank Math, AIOSEO, SEOPress, The SEO Framework, theme code), these head
+# items are recorded with their raw markup, in their original position, and re-emitted verbatim. `kind`, `name`
+# and `value` are there for the CMS modelling phase; the build never re-renders from them.
+SEO_PLUGIN_COMMENT = ('Yoast SEO', 'Rank Math', 'All in One SEO', 'AIOSEO', 'SEOPress', 'The SEO Framework')
 
 
-def parse_seo_item(raw):
-    m = re.fullmatch(r"<meta name='robots' content='([^']*)' />", raw)
-    if m: return ['robots', m.group(1)]
-    m = re.fullmatch(r'<title>(.*)</title>', raw, re.S)
-    if m: return ['title', m.group(1)]
-    m = re.fullmatch(r'<meta name="description" content="([^"]*)" />', raw)
-    if m: return ['description', m.group(1)]
-    m = re.fullmatch(r'<link rel="canonical" href="([^"]*)" />', raw)
-    if m: return ['canonical', m.group(1)]
-    m = re.fullmatch(r'<meta property="([^"]+)" content="([^"]*)" />', raw)
-    if m: return ['property', m.group(1), m.group(2)]
-    m = re.fullmatch(r'<meta name="((?:twitter:|author)[^"]*)" content="([^"]*)" />', raw)
-    if m: return ['name', m.group(1), m.group(2)]
-    if raw.startswith('<script type="application/ld+json" class="yoast-schema-graph">'):
-        return ['jsonld', raw]
-    if re.match(r'<!-- (This site is optimized|/ Yoast SEO)', raw):
-        return ['comment', raw]
+def attr(raw, name):
+    m = re.search(r'\s%s\s*=\s*(?:"([^"]*)"|\'([^\']*)\')' % re.escape(name), raw, re.I)
+    return None if not m else (m.group(1) if m.group(1) is not None else m.group(2))
+
+
+def classify_seo(raw):
+    """-> {'kind', 'name', 'value'} for an SEO head item, else None."""
+    if raw.startswith('<title'):
+        return {'kind': 'title', 'name': '', 'value': re.sub(r'^<title[^>]*>|</title>$', '', raw, flags=re.S)}
+    if raw.startswith('<meta'):
+        name, prop, content = attr(raw, 'name'), attr(raw, 'property'), attr(raw, 'content')
+        if name and (name.lower() in ('robots', 'description', 'author', 'googlebot', 'bingbot') or name.lower().startswith('twitter:')):
+            return {'kind': 'meta', 'name': name, 'value': content}
+        if prop and re.match(r'(og|article|fb|profile|book|music|video):', prop):
+            return {'kind': 'property', 'name': prop, 'value': content}
+    if raw.startswith('<link') and (attr(raw, 'rel') or '').lower() == 'canonical':
+        return {'kind': 'canonical', 'name': '', 'value': attr(raw, 'href')}
+    if raw.startswith('<script') and re.search(r'type=["\']application/ld\+json', raw[:200]):
+        return {'kind': 'jsonld', 'name': '', 'value': None}
+    if raw.startswith('<!--') and any(k in raw for k in SEO_PLUGIN_COMMENT):
+        return {'kind': 'comment', 'name': '', 'value': None}
     return None
-
-
-def render_seo_item(it):
-    k = it[0]
-    if k == 'robots': return "<meta name='robots' content='%s' />" % it[1]
-    if k == 'title': return '<title>%s</title>' % it[1]
-    if k == 'description': return '<meta name="description" content="%s" />' % it[1]
-    if k == 'canonical': return '<link rel="canonical" href="%s" />' % it[1]
-    if k == 'property': return '<meta property="%s" content="%s" />' % (it[1], it[2])
-    if k == 'name': return '<meta name="%s" content="%s" />' % (it[1], it[2])
-    return it[1]
 
 
 # ---------------------------------------------------------------- helpers for page records
@@ -103,19 +100,28 @@ def slug_of(url):
     return p or 'index'
 
 
-def template_of(bodyopen):
-    cls = re.search(r'class="([^"]*)"', bodyopen).group(1).split()
-    if 'single-course' in cls: return 'course'
-    if 'single-post' in cls: return 'post'
+def parse_attrs(s):
+    """Attribute string of an opening tag -> ordered dict (entities decoded; Astro re-escapes on output)."""
+    out = {}
+    for m in re.finditer(r'([^\s=/>"\']+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+)))?', s):
+        v = next((g for g in m.groups()[1:] if g is not None), '')
+        out[m.group(1)] = html.unescape(v)
+    return out
+
+
+def template_of(cls):
+    """Name of the WordPress template from the body classes: configured map first, then the standard classes."""
+    for k, v in CFG['templates'].items():
+        if k in cls:
+            return v
+    if 'error404' in cls: return '404'
     if 'home' in cls: return 'home'
+    for c in cls:
+        if c.startswith('single-') and not c.startswith('single-format-'):
+            return c[len('single-'):]  # single-post -> post, single-product -> product, single-<custom type> -> <custom type>
+    if 'search' in cls: return 'search'
+    if {'archive', 'category', 'tag', 'author', 'tax', 'blog', 'paged'} & set(cls) or any(c.startswith('tax-') for c in cls): return 'archive'
     return 'page'
-
-
-def lw_path(url):
-    from lib import PUBLIC
-    url = PUBLIC.get(url, url).split('?')[0]
-    p = up.quote(up.unquote(url.replace(O, '')).strip('/'), safe="/-_.~%")
-    return (p or '').replace('/', '\\/') if p else '\\/'
 
 
 def line_patches(base, other):
@@ -134,42 +140,29 @@ def main():
     D = {u: deopt.deopt(t) for u, t in pages.items()}
     S = {u: seg(t) for u, t in D.items()}
 
-    # ---- chrome constants (identical on every page)
-    for k in ('pre', 'mid', 'post'):
-        assert len({re.sub(r'\s+', ' ', s[k]) for s in S.values()}) == 1, k  # whitespace-only differences (attribute slot spacing) are insignificant
-    chrome = {'pre': S[next(iter(S))]['pre'], 'mid': S[next(iter(S))]['mid'], 'post': S[next(iter(S))]['post']}
-
-    # ---- header / footer: base variant (by masked text) + per-page line patches
-    def base_variant(key):
+    # ---- regions: base variant (most common masked text) + per-page line patches
+    bases = {}
+    for key in REGIONS:
         c = collections.Counter(nk(s[key]) for s in S.values())
         top = c.most_common(1)[0][0]
-        for u, s in S.items():
-            if nk(s[key]) == top:
-                return s[key], u
-    hdr_base, hdr_u = base_variant('header')
-    ftr_base, ftr_u = base_variant('footer')
-    # Livewire snapshot path in the base header becomes a placeholder substituted per page
-    hdr_path = lw_path(hdr_u)
-    assert hdr_base.count('&quot;path&quot;:&quot;%s&quot;' % hdr_path) >= 1
-    hdr_base = hdr_base.replace('&quot;path&quot;:&quot;%s&quot;' % hdr_path, '&quot;path&quot;:&quot;{{LW_PATH}}&quot;')
+        bases[key] = next(s[key] for s in S.values() if nk(s[key]) == top)
 
     # ---- head & tail items
     head_items, tail_items = {}, {}
     for u, s in S.items():
-        head_items[u] = split_items(s['head'].split('<!DOCTYPE html>', 1)[1].split('<head>', 1)[1].replace('</head>', ''), TOK)
-        tail_items[u] = split_items(s['tail'].replace('</body>', '').replace('</html>', ''), TAIL_TOK)
-        # sanity: nothing but whitespace between items
+        head_m = re.search(r'<head\b[^>]*>', s['head'], re.I)
+        head_text = s['head'][head_m.end():]
+        head_items[u] = split_items(head_text[:head_text.lower().rfind('</head>')] if '</head>' in head_text.lower() else head_text, TOK)
+        tail_items[u] = split_items(re.sub(r'</body>|</html>', '', s['tail'], flags=re.I), TAIL_TOK)
     hcount = collections.Counter(nk(r) for l in head_items.values() for (_, r) in {x for x in l})
     tcount = collections.Counter(nk(r) for l in tail_items.values() for (_, r) in {x for x in l})
     head_reg, tail_reg = {}, {}
     hkey2id, tkey2id = {}, {}
-    used = collections.Counter()
 
     def reg_id(raw, store, key2id, mk):
         if mk in key2id: return key2id[mk]
-        base = item_id(raw, used)
-        i = base
-        n = 2
+        base = item_id(raw)
+        i, n = base, 2
         while i in store:
             i = f'{base}-{n}'; n += 1
         key2id[mk] = i; store[i] = raw
@@ -179,68 +172,54 @@ def main():
     content_dir = os.path.join(SRC, 'content')
     stamp.clean(content_dir)  # removes only files this script wrote and nobody has edited
     stats = collections.Counter()
+    skip_roles = set(CFG['skipFormRoles'])
     for u in sorted(S):
         s = S[u]
-        tpl = template_of(s['bodyopen'])
-        from lib import PUBLIC
-        rec = {'path': u.replace(O, ''), 'url': PUBLIC.get(u, u).replace(O, ''), 'template': tpl,
-               'bodyClass': re.search(r'class="([^"]*)"', s['bodyopen']).group(1)}
-        # head
-        seo, head_out, seo_done = [], [], False
+        body_attrs = parse_attrs(re.sub(r'^<body\b|>$', '', s['bodyopen'], flags=re.I))
+        html_m = re.search(r'<html\b([^>]*)>', s['head'], re.I)
+        rec = {'path': u.replace(O, ''), 'url': PUBLIC.get(u, u).replace(O, ''),
+               'template': template_of(body_attrs.get('class', '').split()),
+               'htmlAttrs': parse_attrs(html_m.group(1)) if html_m else {}, 'bodyAttrs': body_attrs}
+        # head: SEO items stay where they were and are recorded in rec['seo']; the rest are shared ids or inline raw items
+        seo, head_out = [], []
         for kind, raw in head_items[u]:
             if kind == 'html':
                 raise SystemExit('unexpected text in head of ' + u + ': ' + raw[:80])
-            p = parse_seo_item(raw)
-            if p and render_seo_item(p) == raw:
-                if not seo_done:
-                    head_out.append({'seo': True}); seo_done = True
-                seo.append(p)
+            c = classify_seo(raw)
+            if c:
+                head_out.append({'seo': len(seo)}); seo.append({**c, 'raw': raw})
                 continue
             mk = nk(raw)
-            if hcount[mk] >= 2:
-                head_out.append(reg_id(raw, head_reg, hkey2id, mk))
-            else:
-                head_out.append({'raw': raw})
-        rec['head'] = head_out
-        rec['seo'] = seo
-        # header / footer
-        hh = s['header'].replace('&quot;path&quot;:&quot;%s&quot;' % lw_path(u), '&quot;path&quot;:&quot;{{LW_PATH}}&quot;')
-        rec['headerPatches'] = line_patches(hdr_base, hh) if nk(hh) != nk(hdr_base) else []
-        rec['footerPatches'] = line_patches(ftr_base, s['footer']) if nk(s['footer']) != nk(ftr_base) else []
+            head_out.append(reg_id(raw, head_reg, hkey2id, mk) if hcount[mk] >= 2 else {'raw': raw})
+        rec['head'], rec['seo'] = head_out, seo
+        # regions
+        rec['patches'] = {k: (line_patches(bases[k], s[k]) if nk(s[k]) != nk(bases[k]) else []) for k in REGIONS}
         # tail
-        t_out = []
-        for kind, raw in tail_items[u]:
-            mk = nk(raw)
-            if tcount[mk] >= 2:
-                t_out.append(reg_id(raw, tail_reg, tkey2id, mk))
-            else:
-                t_out.append({'raw': raw})
-        rec['tail'] = t_out
-        # main -> content file, with TODO comments above each <form
-        main_html = s['main']
+        rec['tail'] = [reg_id(raw, tail_reg, tkey2id, nk(raw)) if tcount[nk(raw)] >= 2 else {'raw': raw} for _, raw in tail_items[u]]
+        # main -> content file, with a TODO comment above each data-entry form
         def todo(m):
-            fid = re.search(r"id=['\"](gform_\d+)", m.group(0)).group(1)
+            tag = m.group(0)
+            if (attr(tag, 'role') or '') in skip_roles:
+                return tag
             stats['forms'] += 1
-            return FORM_TODO.format(fid=fid) + '\n' + m.group(0)
-        main_html = re.sub(r"<form\b[^>]*id=['\"]gform_\d+['\"][^>]*>", todo, main_html)
-        slug = slug_of(u)
-        rel = slug + '.html'
-        fp = os.path.join(content_dir, rel)
-        stamp.write(fp, main_html)
+            return FORM_TODO.format(fid=attr(tag, 'id') or f"form-{stats['forms']}") + '\n' + tag
+        main_html = re.sub(r'<form\b[^>]*>', todo, s['main'])
+        rel = slug_of(u) + '.html'
+        stamp.write(os.path.join(content_dir, rel), main_html)
         rec['content'] = rel
         records[u] = rec
 
     # ---- write data
     data = os.path.join(SRC, 'data')
     stamp.clean(os.path.join(data, 'pages'))  # only generated files; redirects/rewrites/asset data live beside them
-    stamp.write_json(os.path.join(data, 'chrome.json'), {'headerBase': hdr_base, 'footerBase': ftr_base, **chrome}, ensure_ascii=False, indent=1)
+    stamp.write_json(os.path.join(data, 'chrome.json'), {k: bases[k] for k in REGIONS}, ensure_ascii=False, indent=1)
     stamp.write_json(os.path.join(data, 'head-items.json'), head_reg, ensure_ascii=False, indent=1)
     stamp.write_json(os.path.join(data, 'tail-items.json'), tail_reg, ensure_ascii=False, indent=1)
     for u, rec in records.items():
         name = rec['content'].replace('.html', '').replace(os.sep, '__') + '.json'
         stamp.write_json(os.path.join(data, 'pages', name), rec, ensure_ascii=False, indent=1)
     print('pages', len(records), 'head registry', len(head_reg), 'tail registry', len(tail_reg), 'forms', stats['forms'])
-    print('header patches:', sum(1 for r in records.values() if r['headerPatches']), 'footer patches:', sum(1 for r in records.values() if r['footerPatches']))
+    print('pages with patches:', {k: sum(1 for r in records.values() if r['patches'][k]) for k in REGIONS})
     print('inline head raw items:', sum(1 for r in records.values() for e in r['head'] if isinstance(e, dict) and 'raw' in e), 'inline tail raw items:', sum(1 for r in records.values() for e in r['tail'] if isinstance(e, dict)))
     json.dump(dict(deopt.STATS), open(os.path.join(ROOT, '.crawl-cache', 'deopt-stats.json'), 'w'), indent=1)
     stamp.script_ran(5)

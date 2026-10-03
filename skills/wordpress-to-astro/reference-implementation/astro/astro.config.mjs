@@ -9,6 +9,7 @@ const serveStyles = {
   name: 'serve-original-stylesheet-paths',
   hooks: {
     'astro:build:done': ({ dir }) => {
+      if (!fs.existsSync('src/styles/manifest.json')) return; // written in Phase 6
       const manifest = JSON.parse(fs.readFileSync('src/styles/manifest.json', 'utf8'));
       for (const s of manifest.stylesheets) {
         const dest = path.join(fileURLToPath(dir), s.servedPath);
@@ -21,7 +22,7 @@ const serveStyles = {
 
 // Static output that mirrors the WordPress URL scheme: trailing slashes everywhere, one directory per page.
 export default defineConfig({
-  site: 'https://example.com'  // set to the production origin,
+  site: process.env.SITE_ORIGIN || 'https://example.com', // the production origin
   output: 'static',
   trailingSlash: 'always',
   build: { format: 'directory' },
