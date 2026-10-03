@@ -5,7 +5,7 @@ A [Claude Code](https://claude.com/claude-code) skill that migrates a live WordP
 The goal is a clean cutover with **zero SEO impact**: the rendered HTML of every page is reproduced exactly as served, and the output includes content maps shaped for a future [Payload CMS](https://payloadcms.com) setup.
 
 ```
-/wp-to-astro example.com
+/wordpress-to-astro example.com
 ```
 
 ## What it does
@@ -30,23 +30,23 @@ Copy the skill folder into your Claude Code skills directory.
 
 ```bash
 # Per user
-cp -r skills/wp-to-astro ~/.claude/skills/
+cp -r skills/wordpress-to-astro ~/.claude/skills/
 
 # Or per project
-cp -r skills/wp-to-astro /path/to/your/project/.claude/skills/
+cp -r skills/wordpress-to-astro /path/to/your/project/.claude/skills/
 ```
 
-Then, in Claude Code, run `/wp-to-astro <domain>`. Add `--submit-forms` only if you want forms to be test-submitted (see warnings below).
+Then, in Claude Code, run `/wordpress-to-astro <domain>`. Add `--submit-forms` only if you want forms to be test-submitted (see warnings below).
 
 ## Contents
 
 | Path | Purpose |
 |---|---|
-| `skills/wp-to-astro/SKILL.md` | The entry point: non-negotiables and a map of the rest |
-| `skills/wp-to-astro/stages/`, `phases/` | Five stages made of 13 phases, each read in full when reached |
-| `skills/wp-to-astro/policies/` | Crawler identity and scope, run state, review gates, suspicious code, and more |
-| `skills/wp-to-astro/reference/` | Background and contracts (tooling, output layout, visual comparison, scale) |
-| `skills/wp-to-astro/reference-implementation/` | Python/Node scripts and Astro files from a real migration, to copy and adapt |
+| `skills/wordpress-to-astro/SKILL.md` | The entry point: non-negotiables and a map of the rest |
+| `skills/wordpress-to-astro/stages/`, `phases/` | Five stages made of 13 phases, each read in full when reached |
+| `skills/wordpress-to-astro/policies/` | Crawler identity and scope, run state, review gates, suspicious code, and more |
+| `skills/wordpress-to-astro/reference/` | Background and contracts (tooling, output layout, visual comparison, scale) |
+| `skills/wordpress-to-astro/reference-implementation/` | Python/Node scripts and Astro files from a real migration, to copy and adapt |
 
 The reference implementation was run on one site (Roots Sage/Acorn, Yoast, Gravity Forms, Livewire, WP Rocket, Cloudflare). Treat it as a worked example, not an authoritative tool; some scripts carry site-specific constants.
 

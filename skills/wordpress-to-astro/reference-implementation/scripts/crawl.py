@@ -6,7 +6,7 @@ from urllib.parse import urljoin, urlsplit, urldefrag, quote
 
 ORIGIN = os.environ["SITE_ORIGIN"].rstrip("/")
 HOST = ORIGIN.split("//", 1)[1]
-UA = f"wp-to-astro (Claude Code; run by {os.environ['CRAWLER_USER']}; crawling {HOST})"
+UA = f"wordpress-to-astro (Claude Code; run by {os.environ['CRAWLER_USER']}; crawling {HOST})"
 DELAY = 0.6  # seconds between requests (robots.txt declares no crawl-delay)
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PAGES = os.path.join(ROOT, "pages")

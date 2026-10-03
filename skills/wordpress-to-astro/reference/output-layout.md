@@ -1,7 +1,7 @@
 # Output layout
 
 ```
-wp-to-astro.config.json         # intake answers and detected stack, read by the scripts (hand-maintained)
+wordpress-to-astro.config.json         # intake answers and detected stack, read by the scripts (hand-maintained)
 docs/
   platform-features.md       # every WordPress feature found: plain-English purpose, translate-or-drop verdict, Astro approach
   run-state.json             # stage and phase status, open decisions, counts (resume point)

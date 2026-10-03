@@ -6,7 +6,7 @@
 Identify the crawler as the current Claude Code user, never anonymously and never as a browser.
 
 - Use the user's name or account email as Claude Code provides it in the session context. Do not guess or invent one. If none is available, ask the user once what name or email to use.
-- Send it as the User-Agent on every request: `wp-to-astro (Claude Code; run by <user>; crawling <domain>)`.
+- Send it as the User-Agent on every request: `wordpress-to-astro (Claude Code; run by <user>; crawling <domain>)`.
 - Set it wherever the tool allows (for example `curl -A` in the shell). If a tool, such as web fetch, does not let you set the User-Agent, say so in the introduction and note it in `docs/site-structure.md`.
 - Never disguise the crawler or rotate identities.
 

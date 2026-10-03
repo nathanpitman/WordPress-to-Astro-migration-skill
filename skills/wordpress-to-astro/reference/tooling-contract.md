@@ -4,7 +4,7 @@ The aim: the model **runs** tooling and **interprets** the results; it does not 
 
 ## Rules for every command
 
-- Reads `wp-to-astro.config.json` for origin, scope, hosting layers, dynamic components and options (`policies/run-state.md`); no site-specific constants in code.
+- Reads `wordpress-to-astro.config.json` for origin, scope, hosting layers, dynamic components and options (`policies/run-state.md`); no site-specific constants in code.
 - Idempotent and safe to re-run. Writes generated data only to files it owns (for example `src/data/pages/`, `.crawl-cache/`, `docs/*.json`); never deletes hand-maintained files.
 - Reads the crawl cache, not the live site, except `crawl`, `download-assets` and the optional submit-forms step.
 - Exits non-zero when it finds a failure, and prints a short summary (counts, first problems).

@@ -10,7 +10,7 @@ The run is organised in **five stages**. **Stop at the end of every stage for th
 | 4 Verify and review | `stages/4-verify-and-review.md` | checks, local review, visual comparison |
 | 5 Finish | `stages/5-finish.md` | clean build, README, index |
 
-**Gate mode.** The default is `--gates=stage` (above). With `--gates=phase` (set in `$ARGUMENTS` or chosen at intake) treat every phase as a stage of its own and stop after each, as the skill originally did. Record the mode in `wp-to-astro.config.json`.
+**Gate mode.** The default is `--gates=stage` (above). With `--gates=phase` (set in `$ARGUMENTS` or chosen at intake) treat every phase as a stage of its own and stop after each, as the skill originally did. Record the mode in `wordpress-to-astro.config.json`.
 
 ## Stopping inside a stage
 

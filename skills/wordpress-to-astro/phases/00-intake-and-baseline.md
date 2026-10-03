@@ -6,7 +6,7 @@ Run this once, after the go-ahead and before the Phase 1 crawl proper. Part of S
 
 ## Intake
 
-Ask in one message, each with a recommended default. Record the answers in `docs/decisions.md` and `wp-to-astro.config.json` (`policies/run-state.md`).
+Ask in one message, each with a recommended default. Record the answers in `docs/decisions.md` and `wordpress-to-astro.config.json` (`policies/run-state.md`).
 
 1. **Where will the new site be hosted?** (A static site needs a host that can serve plain files; which one decides how old-address-to-new-address forwarding, special handling of addresses with a `?` in them, and some response settings are delivered. Do not assume one; if unknown, produce neutral files for each.)
 2. **May the new pages include one small extra script if a feature cannot work without a server?** (Live search, filters and "load more" on the old site need WordPress running; the static version needs a small script to behave the same.) Default: yes, one script, logged.
@@ -32,8 +32,8 @@ For **every** WordPress feature, plugin, service or script the fingerprint finds
 
 Verdicts: **Drop**, **Keep as is**, **Replace later**, **Replace now** (needs approval) or **Decide** (needs the user), reached with the translate-or-drop test in `policies/plain-language.md`. Open the file with two or three plain sentences saying what it is, and a short glossary of the terms used. Features that need a decision are raised at the Stage 1 gate in the six-part pattern; do not interrupt the stage for them unless they block the work. Add the features to be replaced to `docs/recommended-fixes.md` as Review or Explore entries.
 
-## Baseline: `docs/baseline.md` and `wp-to-astro.config.json`
+## Baseline: `docs/baseline.md` and `wordpress-to-astro.config.json`
 
-Write `docs/baseline.md`: the stack, the origin-markup definition with each reversal class, the volatile tokens and how they are recognised, the comparison contract, the decisions from the intake, and the dynamic components found. Fill in `wp-to-astro.config.json` (hosting layers, volatile tokens, dynamic components and their URL state, asset prefixes). This file is the specification the Phase 5 verifier implements.
+Write `docs/baseline.md`: the stack, the origin-markup definition with each reversal class, the volatile tokens and how they are recognised, the comparison contract, the decisions from the intake, and the dynamic components found. Fill in `wordpress-to-astro.config.json` (hosting layers, volatile tokens, dynamic components and their URL state, asset prefixes). This file is the specification the Phase 5 verifier implements.
 
 After the crawl, run the **smoke slice** (`reference/smoke-slice.md`) and add its result to `docs/baseline.md` before the Stage 1 gate.

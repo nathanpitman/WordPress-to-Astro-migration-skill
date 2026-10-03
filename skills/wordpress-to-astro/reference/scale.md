@@ -1,6 +1,6 @@
 # Scale
 
-Defaults assume a site of up to a few hundred pages. Check the size at the end of the Stage 1 crawl (record it in `wp-to-astro.config.json` under `scale`) and adapt:
+Defaults assume a site of up to a few hundred pages. Check the size at the end of the Stage 1 crawl (record it in `wordpress-to-astro.config.json` under `scale`) and adapt:
 
 | Pages | Crawl | Analysis | Verification | Visual and accessibility |
 |---|---|---|---|---|
