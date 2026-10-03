@@ -2,7 +2,7 @@
 
 A migration spans many sessions and long contexts. Keep two small files on disk so any session can resume exactly where the last one stopped, and so tooling does not depend on what the conversation remembers.
 
-## `wp-to-astro.config.json` (project root)
+## `wordpress-to-astro.config.json` (project root)
 
 Written in Stage 1 from the intake answers and the baseline; read by every script. Hand-maintained: scripts never overwrite it.
 
@@ -11,7 +11,7 @@ Written in Stage 1 from the intake answers and the baseline; read by every scrip
   "origin": "https://example.com",
   "gates": "stage",
   "options": { "submitForms": false },
-  "crawl": { "delaySeconds": 0.6, "concurrency": 1, "userAgent": "wp-to-astro (Claude Code; run by <user>; crawling example.com)" },
+  "crawl": { "delaySeconds": 0.6, "concurrency": 1, "userAgent": "wordpress-to-astro (Claude Code; run by <user>; crawling example.com)" },
   "hostingLayers": [ { "name": "wp-rocket", "detect": "data-rocket-", "reversal": "lazy-img, attrs, scripts, comments" } ],
   "volatileTokens": [ "livewire-snapshot", "gravityforms-state", "wp-nonce" ],
   "dynamicComponents": [ { "name": "livewire-grid", "paths": ["/courses/", "/articles/"], "urlParams": ["page", "course_category"] } ],

@@ -8,7 +8,7 @@ import concurrent.futures as cf, hashlib, json, os, sys, time, urllib.parse as u
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, CACHE, O
 
-UA = f"wp-to-astro (Claude Code; run by {os.environ['CRAWLER_USER']}; crawling {O.split('//', 1)[1]})"
+UA = f"wordpress-to-astro (Claude Code; run by {os.environ['CRAWLER_USER']}; crawling {O.split('//', 1)[1]})"
 inv = json.load(open(os.path.join(CACHE, 'assets-inventory.json')))
 mf_path = os.path.join(ROOT, 'docs/assets-manifest.json')
 manifest = json.load(open(mf_path)) if os.path.exists(mf_path) else {}

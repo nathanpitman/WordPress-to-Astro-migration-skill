@@ -34,7 +34,7 @@ Python 3.9+ (standard library only) and Node 18+ are assumed. The crawl cache li
 
 ## Relation to the tooling contract
 
-`reference/tooling-contract.md` describes the commands tooling should expose (`crawl`, `analyse`, `extract`, `build`, `verify`, `seo-check`, `asset-check`, `review`, `visual`). These scripts are the first pass at it and still carry some site-specific constants; making them fully config-driven (reading `wp-to-astro.config.json`) and testing them on further sites is the next step.
+`reference/tooling-contract.md` describes the commands tooling should expose (`crawl`, `analyse`, `extract`, `build`, `verify`, `seo-check`, `asset-check`, `review`, `visual`). These scripts are the first pass at it and still carry some site-specific constants; making them fully config-driven (reading `wordpress-to-astro.config.json`) and testing them on further sites is the next step.
 
 ## Deliberately not included
 

@@ -1,6 +1,6 @@
 ---
-name: wp-to-astro
-description: Migrate a WordPress (or similar CMS) site to Astro by crawling the live public domain — no WordPress admin access needed. Rebuilds the site with SEO-identical markup for a zero-SEO-impact cutover, produces content maps shaped for Payload CMS, and ends with a verified local build to review. Use when the user invokes /wp-to-astro <domain> [--submit-forms] or asks to migrate, convert or move a WordPress site to Astro or a static site. Documents accessibility issues, errors and hard-coded internal links but never fixes them.
+name: wordpress-to-astro
+description: Migrate a WordPress (or similar CMS) site to Astro by crawling the live public domain — no WordPress admin access needed. Rebuilds the site with SEO-identical markup for a zero-SEO-impact cutover, produces content maps shaped for Payload CMS, and ends with a verified local build to review. Use when the user invokes /wordpress-to-astro <domain> [--submit-forms] or asks to migrate, convert or move a WordPress site to Astro or a static site. Documents accessibility issues, errors and hard-coded internal links but never fixes them.
 ---
 
 # WordPress to Astro migration
@@ -37,7 +37,7 @@ Read these before making any request, then keep to them throughout:
 | [policies/crawler-identity-and-scope.md](policies/crawler-identity-and-scope.md) | the User-Agent, host scope, subdomains, WordPress admin URLs |
 | [policies/suspicious-code.md](policies/suspicious-code.md) | what to flag, how to record it, why it is never recreated |
 | [policies/review-gates-and-decisions.md](policies/review-gates-and-decisions.md) | the five stages and their gates, the checkpoint template, when to stop mid-stage, recording decisions |
-| [policies/run-state.md](policies/run-state.md) | `wp-to-astro.config.json`, `docs/run-state.json`, resuming a run |
+| [policies/run-state.md](policies/run-state.md) | `wordpress-to-astro.config.json`, `docs/run-state.json`, resuming a run |
 | [policies/record-only.md](policies/record-only.md) | what "record, never repair" means in practice |
 | [policies/plain-language.md](policies/plain-language.md) | assume no WordPress knowledge: explain every WordPress feature in plain English, ask decisions in a fixed pattern, decide whether each feature needs translating at all |
 | [policies/recommended-fixes.md](policies/recommended-fixes.md) | the running list every phase appends to |
@@ -59,7 +59,7 @@ Each stage ends at a review gate: **stop and wait for the user to say "continue"
 
 | Phase | File | Produces |
 |---|---|---|
-| 0 Intake and baseline | [phases/00-intake-and-baseline.md](phases/00-intake-and-baseline.md) | `wp-to-astro.config.json`, `docs/platform-features.md`, `docs/baseline.md`, `docs/decisions.md` |
+| 0 Intake and baseline | [phases/00-intake-and-baseline.md](phases/00-intake-and-baseline.md) | `wordpress-to-astro.config.json`, `docs/platform-features.md`, `docs/baseline.md`, `docs/decisions.md` |
 | 1 Crawl and site structure | [phases/01-crawl-and-site-structure.md](phases/01-crawl-and-site-structure.md) | `docs/site-structure.md`, `docs/url-patterns.md`, hard-coded links |
 | 2 Unlinked public pages | [phases/02-unlinked-pages.md](phases/02-unlinked-pages.md) | additions to `docs/site-structure.md` |
 | 3 Content, taxonomy, authors | [phases/03-content-taxonomy-authors.md](phases/03-content-taxonomy-authors.md) | `docs/content-map.md`, `docs/authors.md` |
@@ -116,7 +116,7 @@ A run is complete only when the user can clone the project, install, run **`npm 
 - Never recreate, execute, fetch or follow code or links flagged as malicious or deceptive. Highlight them and record them in `docs/security-findings.md`.
 - Never put a WordPress-specific question to the user without a plain-English explanation of what the feature does, whether the new site needs it, and a recommendation (`policies/plain-language.md`).
 - Never start the next stage without the user's go-ahead (or the next phase in `--gates=phase` mode).
-- Keep `wp-to-astro.config.json` and `docs/run-state.json` current so a run can be resumed.
+- Keep `wordpress-to-astro.config.json` and `docs/run-state.json` current so a run can be resumed.
 - Never run a generator that deletes hand-maintained files. Generated and hand-maintained data live apart.
 - Never start a large download or build without checking free disk space first.
 - Add markup only for approved artefacts, and keep each one to the minimum (one script, one 404 page). Log every one.
