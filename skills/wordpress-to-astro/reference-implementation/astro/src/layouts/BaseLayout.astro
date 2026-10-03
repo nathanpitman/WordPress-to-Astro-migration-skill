@@ -1,0 +1,25 @@
+---
+import Head from '../components/Head.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import TailScripts from '../components/TailScripts.astro';
+import { region, type PageRecord } from '../lib/data';
+interface Props { page: PageRecord; main: string }
+const { page, main } = Astro.props;
+---
+<!DOCTYPE html>
+<html {...page.htmlAttrs}>
+  <head>
+    <Head page={page} />
+  </head>
+
+  <body {...page.bodyAttrs}>
+    <Fragment set:html={region(page, 'pre')} />
+    <Header page={page} />
+    <Fragment set:html={region(page, 'mid')} />
+    <Fragment set:html={main} />
+    <Fragment set:html={region(page, 'post')} />
+    <Footer page={page} />
+    <TailScripts page={page} />
+  </body>
+</html>

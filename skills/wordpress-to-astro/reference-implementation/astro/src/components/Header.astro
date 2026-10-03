@@ -1,0 +1,8 @@
+---
+// Site header and primary navigation (verbatim). Per-page differences, usually the nav "current item"
+// classes, are stored as line patches on the page record.
+import { region, type PageRecord } from '../lib/data';
+interface Props { page: PageRecord }
+const { page } = Astro.props;
+---
+<Fragment set:html={region(page, 'header')} />

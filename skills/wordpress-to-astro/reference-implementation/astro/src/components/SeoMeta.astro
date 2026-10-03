@@ -1,0 +1,9 @@
+---
+// One SEO head item (title, description, robots, canonical, Open Graph, Twitter, JSON-LD, or an SEO plugin's
+// own comment), emitted exactly as the SEO plugin wrote it. `kind`, `name` and `value` are parsed for the CMS
+// modelling phase; the markup comes from `raw` so quoting, order and spacing are the origin's.
+import type { SeoItem } from '../lib/data';
+interface Props { item: SeoItem }
+const { item } = Astro.props;
+---
+<Fragment set:html={item.raw} />

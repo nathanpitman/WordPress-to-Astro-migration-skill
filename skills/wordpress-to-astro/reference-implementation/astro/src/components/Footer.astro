@@ -1,0 +1,7 @@
+---
+// Site footer (verbatim); per-page differences are stored as line patches on the page record.
+import { region, type PageRecord } from '../lib/data';
+interface Props { page: PageRecord }
+const { page } = Astro.props;
+---
+<Fragment set:html={region(page, 'footer')} />

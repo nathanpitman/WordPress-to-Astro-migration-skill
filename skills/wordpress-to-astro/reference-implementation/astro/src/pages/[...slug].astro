@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadPages } from '../lib/data';
+
+export function getStaticPaths() {
+  // ONLY_PATHS=/about/,/blog/hello-world/ limits a build to a few pages (handy when disk or time is tight).
+  const only = process.env.ONLY_PATHS?.split(',');
+  return loadPages().filter(({ record }) => record.path !== '/404/' && (!only || only.includes(record.path))).map(({ record, main }) => {
+    const slug = decodeURIComponent(record.path).replace(/^\/|\/$/g, '');
+    return { params: { slug: slug || undefined }, props: { record, main } };
+  });
+}
+const { record, main } = Astro.props;
+---
+<BaseLayout page={record} main={main} />
