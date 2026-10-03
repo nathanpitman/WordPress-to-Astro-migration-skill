@@ -10,6 +10,7 @@ import collections, hashlib, json, os, re, shutil, sys, urllib.parse as up
 from html.parser import HTMLParser
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, CACHE, O, load_pages, seg
+import stamp
 
 SKIP = {'script', 'style', 'noscript', 'template', 'svg'}
 
@@ -77,7 +78,7 @@ def main():
         inv[u.replace(O, '') or '/'] = f
         outlines[u.replace(O, '') or '/'] = o
     json.dump(inv, open(os.path.join(CACHE, 'seo-inventory.json'), 'w'), indent=1)
-    json.dump(outlines, open(os.path.join(ROOT, 'docs/heading-outlines.json'), 'w'), indent=1, ensure_ascii=False)
+    stamp.write_json(os.path.join(ROOT, 'docs/heading-outlines.json'), outlines, indent=1, ensure_ascii=False)
 
     # ---- verbatim static files
     pub = os.path.join(ROOT, 'public'); os.makedirs(pub, exist_ok=True)
@@ -85,9 +86,10 @@ def main():
               'sitemaps/page-sitemap.xml': 'page-sitemap.xml', 'sitemaps/course-sitemap.xml': 'course-sitemap.xml',
               'probes/main-sitemap.xsl': 'main-sitemap.xsl', 'probes/feed.xml': 'feed/index.xml', 'probes/feed-comments.xml': 'comments/feed/index.xml'}
     for src, dst in copies.items():
-        d = os.path.join(pub, dst); os.makedirs(os.path.dirname(d), exist_ok=True)
-        shutil.copyfile(os.path.join(CACHE, src), d)
+        d = os.path.join(pub, dst)
+        stamp.write(d, open(os.path.join(CACHE, src), 'rb').read())  # verbatim; a hand-edited copy is kept
     print('copied', len(copies), 'static files to public/')
+    stamp.script_ran(7)
 
 
 if __name__ == '__main__':

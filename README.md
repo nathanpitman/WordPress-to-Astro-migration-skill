@@ -38,6 +38,10 @@ cp -r skills/wordpress-to-astro /path/to/your/project/.claude/skills/
 
 Then, in Claude Code, run `/wordpress-to-astro <domain>`. Add `--submit-forms` only if you want forms to be test-submitted (see warnings below).
 
+## Updating an existing migration
+
+The skill is versioned (`version` in `SKILL.md`, history in `CHANGELOG.md`). When you run it against a project built by an older version, it reads the changelog, works out which phases are stale, and offers to re-run just those, keeping any files you have edited by hand. See `policies/updating-a-run.md`.
+
 ## Contents
 
 | Path | Purpose |

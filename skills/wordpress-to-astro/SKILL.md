@@ -1,5 +1,6 @@
 ---
 name: wordpress-to-astro
+version: 1.0.0
 description: Migrate a WordPress (or similar CMS) site to Astro by crawling the live public domain — no WordPress admin access needed. Rebuilds the site with SEO-identical markup for a zero-SEO-impact cutover, produces content maps shaped for Payload CMS, and ends with a verified local build to review. Use when the user invokes /wordpress-to-astro <domain> [--submit-forms] or asks to migrate, convert or move a WordPress site to Astro or a static site. Documents accessibility issues, errors and hard-coded internal links but never fixes them.
 ---
 
@@ -9,7 +10,7 @@ Migrate a site from WordPress (or similar) to Astro, with Payload as the future 
 
 This file holds the non-negotiables and the map. **The detail lives in the files it links to: read each one when you reach it** (the policies once, before the first request; each stage file and each phase file in full when you start it). Do not work from memory of a step you have not just read.
 
-The run has **five stages with a review gate at the end of each**, made of 13 phase files used as steps. If a run is already in progress (`docs/run-state.json` exists), resume it as set out in `policies/run-state.md`.
+The run has **five stages with a review gate at the end of each**, made of 13 phase files used as steps. If a run is already in progress (`docs/run-state.json` exists), resume it as set out in `policies/run-state.md`. If its `skillVersion` differs from this file's `version`, offer to update it as set out in `policies/updating-a-run.md` (see [CHANGELOG.md](CHANGELOG.md)).
 
 The goal is a clean cutover with **zero SEO impact**.
 
@@ -38,6 +39,7 @@ Read these before making any request, then keep to them throughout:
 | [policies/suspicious-code.md](policies/suspicious-code.md) | what to flag, how to record it, why it is never recreated |
 | [policies/review-gates-and-decisions.md](policies/review-gates-and-decisions.md) | the five stages and their gates, the checkpoint template, when to stop mid-stage, recording decisions |
 | [policies/run-state.md](policies/run-state.md) | `wordpress-to-astro.config.json`, `docs/run-state.json`, resuming a run |
+| [policies/updating-a-run.md](policies/updating-a-run.md) | re-running an existing migration after the skill changes: version stamps, stale phases, hand-edit protection, crawl freshness |
 | [policies/record-only.md](policies/record-only.md) | what "record, never repair" means in practice |
 | [policies/plain-language.md](policies/plain-language.md) | assume no WordPress knowledge: explain every WordPress feature in plain English, ask decisions in a fixed pattern, decide whether each feature needs translating at all |
 | [policies/recommended-fixes.md](policies/recommended-fixes.md) | the running list every phase appends to |

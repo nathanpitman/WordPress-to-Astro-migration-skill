@@ -3,7 +3,7 @@
 import collections, glob, json, os, re, sys, urllib.parse as up
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, CACHE, O, load_pages
-import deopt
+import deopt, stamp
 
 idx = json.load(open(os.path.join(CACHE, 'crawl-index.json')))['pages']
 out = {}
@@ -99,3 +99,4 @@ dupe = collections.Counter(re.findall(r'<loc>([^<]+)</loc>', ''.join(open(os.pat
 out['sitemapDuplicates'] = [u for u, c in dupe.items() if c > 1]
 json.dump(out, open(os.path.join(CACHE, 'errors.json'), 'w'), indent=1, default=list)
 print({k: (len(v) if hasattr(v, '__len__') else v) for k, v in out.items()})
+stamp.script_ran(11)

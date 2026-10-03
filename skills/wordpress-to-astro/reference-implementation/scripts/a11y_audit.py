@@ -8,7 +8,7 @@ import collections, glob, html as H, json, os, re, sys
 from html.parser import HTMLParser
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, CACHE, O, load_pages, seg
-import deopt
+import deopt, stamp
 
 VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'}
 SKIPTEXT = {'script', 'style', 'noscript', 'template'}
@@ -263,6 +263,7 @@ def main():
         if re.search(r'autoplay\s*:\s*(\{|true)', s['main'] + s['tail']): pf.append({'rule': 'carousel-autoplay-indicative', 'wcag': '2.2.2', 'severity': 'moderate', 'region': 'Main content', 'page': path, 'selector': 'swiper', 'detail': 'autoplay in inline config', 'note': 'Auto-moving carousels need a pause control. Indicative: configuration found in inline script.'})
     json.dump({'shared': sf, 'pages': pf, 'npages': len(pages)}, open(os.path.join(CACHE, 'a11y-findings.json'), 'w'))
     print('shared findings', len(sf), 'page findings', len(pf), 'pages', len(pages))
+    stamp.script_ran(10)
 
 
 if __name__ == '__main__':

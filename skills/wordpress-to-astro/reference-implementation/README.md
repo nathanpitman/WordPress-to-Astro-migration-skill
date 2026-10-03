@@ -18,6 +18,7 @@ Python 3.9+ (standard library only) and Node 18+ are assumed. The crawl cache li
 | File | Purpose | How generic |
 |---|---|---|
 | `scripts/crawl.py` | polite breadth-first crawler, caches HTML and headers, records redirect chains; skips API/feed `<link>` targets | generic |
+| `scripts/stamp.py` | version stamps and the generated-file manifest (`policies/updating-a-run.md`): `write`/`write_json`/`clean` for generators, plus `adopt`, `status`, `complete`, `crawled` commands | generic; `SKILL_VERSION` must match `SKILL.md` |
 | `scripts/lib.py` | shared helpers: load cached pages, split a page into head/header/main/footer/tail, mask volatile tokens, normalise for comparison | splitter assumes `<header>`, `<main>`, `<footer>` landmarks; masks are for Livewire, Gravity Forms and WordPress nonces |
 | `scripts/deopt.py` | reverses WP Rocket and Cloudflare output (lazy-load placeholders, injected attributes/scripts, email obfuscation) | **site-specific**: one function per hosting layer; rewrite for the stack found in Phase 0 |
 | `scripts/build_source.py` | decomposes cached pages into shared fragments, per-page records and verbatim `<main>` files, with nav-state patches and the `TODO(manual)` form comments | structure generic; fragment boundaries and the Livewire path token are site-specific |
@@ -42,6 +43,7 @@ Report writers (`accessibility-report.md`, `errors.md`, the content map and so o
 
 ## Conventions worth keeping
 
+- Generators write through `stamp.py` and clean with `stamp.clean()`, so a re-run never overwrites a file edited by hand (the regenerated copy lands beside it as `<name>.updated`).
 - Generated data in `src/data/pages/`, hand-maintained data (`redirects.json`, `rewrites.json`, content-type overrides) beside it: a generator may only delete what it generates.
 - Page content is read from disk at build time (`fs`), not bundled, so large sites build with little memory or disk.
 - `npm run extract | build | verify | review` as the standard commands.

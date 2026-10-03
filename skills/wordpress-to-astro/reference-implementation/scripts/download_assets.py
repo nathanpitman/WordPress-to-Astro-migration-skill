@@ -7,6 +7,7 @@ Stylesheets are skipped (already in src/styles). Writes docs/assets-manifest.jso
 import concurrent.futures as cf, hashlib, json, os, sys, time, urllib.parse as up, urllib.request, urllib.error
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import ROOT, CACHE, O
+import stamp
 
 UA = f"wordpress-to-astro (Claude Code; run by {os.environ['CRAWLER_USER']}; crawling {O.split('//', 1)[1]})"
 inv = json.load(open(os.path.join(CACHE, 'assets-inventory.json')))
@@ -39,5 +40,7 @@ with cf.ThreadPoolExecutor(max_workers=3) as ex:
         n += 1
         if n % 100 == 0: print(n, flush=True); json.dump(manifest, open(mf_path, 'w'), indent=0)
 json.dump(manifest, open(mf_path, 'w'), indent=0)
+stamp.record(*(os.path.join(ROOT, m['local']) for m in manifest.values() if m.get('local')))  # downloaded files, so later runs can spot edits
+stamp.script_ran(9)
 ok = sum(1 for m in manifest.values() if m.get('status') == 200); print('done', ok, 'ok of', len(manifest))
 bad = {u: m for u, m in manifest.items() if m.get('status') != 200}; print(len(bad), 'failed:'); [print(' ', m.get('status'), u) for u, m in list(bad.items())[:15]]
