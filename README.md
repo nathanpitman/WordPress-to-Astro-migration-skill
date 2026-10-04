@@ -1,5 +1,7 @@
 # WordPress to Astro migration skill
 
+![Status: alpha](https://img.shields.io/badge/status-alpha-orange) ![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue)
+
 A [Claude Code](https://claude.com/claude-code) skill that migrates a live WordPress (or similar CMS) site to [Astro](https://astro.build) using only what is publicly reachable on the domain. No WordPress admin, database or API credentials are needed.
 
 The goal is a clean cutover with **zero SEO impact**: the rendered HTML of every page is reproduced exactly as served, and the output includes content maps shaped for a future [Payload CMS](https://payloadcms.com) setup.
@@ -7,6 +9,8 @@ The goal is a clean cutover with **zero SEO impact**: the rendered HTML of every
 ```
 /wordpress-to-astro example.com
 ```
+
+> **Status: alpha.** The method (crawl, rebuild, then verify every page against the live site) is stable and the pipeline runs end to end on a synthetic WordPress site. It has not yet been proven on a range of real sites. See [Status and known limitations](#status-and-known-limitations) before pointing it at anything that matters, and expect to adapt the reference scripts to the stack you find.
 
 ## What it does
 
@@ -52,7 +56,33 @@ The skill is versioned (`version` in `SKILL.md`, history in `CHANGELOG.md`). Whe
 | `skills/wordpress-to-astro/reference/` | Background and contracts (tooling, output layout, visual comparison, scale) |
 | `skills/wordpress-to-astro/reference-implementation/` | Config-driven Python/Node scripts and Astro files for a typical WordPress site, with a synthetic test site, to copy and adapt |
 
-The reference implementation targets a typical WordPress setup and has been tested end to end only on a synthetic stock-WordPress site. Treat it as a worked example, not an authoritative tool; hosting-layer reversals in particular cover only WP Rocket and Cloudflare so far.
+The reference implementation targets a typical WordPress setup. Treat it as a worked example to copy and adapt, not an authoritative tool.
+
+## Status and known limitations
+
+This project is **alpha**. It is published early, in the open, so that people can try it, break it and tell us how. What that means in practice:
+
+**What has been tested**
+- The full pipeline (crawl, build, verify, SEO check, asset check) runs end to end against the synthetic stock-WordPress site in `reference-implementation/test-fixture/` (`bash test-fixture/smoke.sh`).
+- It has **not** been run against a range of real production sites, large sites, or non-WordPress CMSs. Claims of identical output are proven by the skill's own verification on each run, not by a track record.
+
+**Known limitations**
+- **Hosting layers:** reversals exist only for WP Rocket and Cloudflare. Other cache, minification and CDN plugins (LiteSpeed Cache, W3 Total Cache, Autoptimize and so on) need a small reversal added in `deopt.py`, or output will differ.
+- **Theme structure:** the page splitter expects `<header>`, `<main>` and `<footer>` landmarks. Themes without them need the splitter adapted.
+- **Per-render values:** only WordPress nonces and Gravity Forms state are masked out of the box. Other per-request tokens (other form, security or A/B plugins) will show as diffs until masks are added.
+- **Query-string listings:** listings driven by `?param=` (plugins, custom code) must be declared in the config. Core `/page/N/` pagination and archives need nothing.
+- **Public content only:** anything behind a login, a paywall, or requiring an interaction the crawler cannot perform is out of reach by design. Unlinked pages are only found where Phase 2's methods reach them.
+- **Accessibility contrast check:** indicative only, and limited to WordPress colour presets or Tailwind-style tokens; otherwise it is skipped.
+- **Report writers and data builders:** the content maps, reports, redirect and rewrite data are produced by Claude following the phase files, not by bundled scripts, so their quality varies run to run and they should be reviewed.
+- **Scale:** the approach is designed to keep memory and disk use low (`reference/scale.md`), but has not been exercised on very large sites.
+- **Not a malware scanner:** see [Responsible use](#responsible-use).
+
+**What would move it to beta**
+- Verified migrations of several real sites on different themes and plugin stacks, with the results written up
+- Reversals for the most common hosting layers
+- CI running the fixture smoke test
+
+If you try it on a real site, please [open an issue](https://github.com/nathanpitman/WordPress-to-Astro-migration-skill/issues) and say which theme, SEO plugin, forms and caching it used and how it went, good or bad. Use `example.com` rather than real client details.
 
 ## Responsible use
 
