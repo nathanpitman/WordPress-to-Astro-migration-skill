@@ -12,6 +12,16 @@ Output effect: <none | docs only | source and rendered output may differ>
 New decisions: <questions or config keys added, with defaults, or "none">
 ```
 
+## 2.1.0 (2026-10-04) MINOR
+Affects phases: 0, 8 (and the Stage 1 smoke slice, the Stage 3 gate and the Stage 4 verification)
+- Phase 8: query-string addresses are now derived from what the page's own controls submit (a browser's serialisation of every form, including empty text inputs and default options, crossed with every option and page index), not from the parameter names noticed in the markup. A form with a filter and a search box always submits both, so a filter click arrives with an empty search value; rewrite rules must exist for those addresses, and a gap fails silently by serving the unfiltered page.
+- Phase 0: dynamic components record their URL state as the component's own controls submit it.
+- Smoke slice: step 5 now operates each control once on live and local and compares what is shown and the address reached, instead of only loading the pages.
+- Stages 3 and 4: new `reference/interaction-checks.md` (a journey list of every operable control, run through the page's own interface, with an HTTP-replay fallback). Stage 3's gate reports the journey results. Stage 4's live re-fetch builds its address list from two independent sources, the new site's rules and addresses derived from the live pages, and reports rule gaps. A check must not take its inputs only from the thing it checks.
+- `reference/tooling-contract.md`: `recheck` and `journeys` commands and the independence rule.
+Output effect: rewrite rules may gain entries for forms with empty or default parameters (Phase 8); rendered pages unchanged. Re-running Phase 8 on an existing run is worthwhile if it has a listing with a filter plus a search box (or any form with several controls)
+New decisions: none
+
 ## 2.0.0 (2026-10-03) MAJOR
 Affects phases: 1, 5, 7, 9, 10, 11 (and 8 where the site has query-string listings)
 - Reference scripts rewritten for a typical WordPress site and driven by `wordpress-to-astro.config.json` instead of constants from one site. New `config.py`; keys are listed in `policies/run-state.md`.

@@ -8,6 +8,7 @@ The aim: the model **runs** tooling and **interprets** the results; it does not 
 - Idempotent and safe to re-run. Writes generated data only to files it owns (for example `src/data/pages/`, `.crawl-cache/`, `docs/*.json`); never deletes hand-maintained files. Records each generated file's SHA-256 in `docs/generated-manifest.json`, and before overwriting one, refuses if its hash no longer matches (a local edit): it writes `<name>.updated` instead (`policies/updating-a-run.md`).
 - Reads the crawl cache, not the live site, except `crawl`, `download-assets` and the optional submit-forms step.
 - Exits non-zero when it finds a failure, and prints a short summary (counts, first problems).
+- A check must not take its inputs only from the thing it checks: build the list of addresses to test from the live pages as well as from the new site's own rule files (`reference/interaction-checks.md`, section 4).
 - Generated tables in `docs/*.md` go between markers (`<!-- generated:start name -->` … `<!-- generated:end -->`) so the model can write narrative around them and re-generate without losing it. The model writes the narrative, the findings that need judgement and the decisions; scripts write the tables and counts.
 
 ## Commands
@@ -29,6 +30,8 @@ The aim: the model **runs** tooling and **interprets** the results; it does not 
 | `asset-check` | 4 | `dist/` | missing asset paths |
 | `review` | 3, 4 | `dist/`, `src/data/*.json` | serves locally (`reference/local-review.md`) |
 | `visual` | 4 | browser | per-region height strings (`reference/visual-comparison.md`) |
+| `recheck` | 4 | config, live site, `dist/`, rule files | pass/fail per address, with the address list built from **two sources** (the new site's rules and addresses derived from the live pages); lists live-derived addresses no rule covers (`reference/interaction-checks.md`, section 4) |
+| `journeys` | 3, 4 | browser (or HTTP replay), live site, local review | per-control result table (`reference/interaction-checks.md`) |
 
 Expose them as `npm run <name>` (or one `scripts/wp2astro` entry with these subcommands). The standard commands a reviewer sees at the end are `extract`, `build`, `verify` and `review`.
 

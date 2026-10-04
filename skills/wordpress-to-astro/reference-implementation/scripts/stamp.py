@@ -21,7 +21,7 @@ hash no longer matches has been edited by hand: it is kept, and the regenerated 
 import atexit, datetime, glob, hashlib, json, os, sys
 
 # Keep in step with `version` in the skill's SKILL.md (see reference/extending.md, "Releasing a change").
-SKILL_VERSION = '2.0.0'
+SKILL_VERSION = '2.1.0'
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST = os.path.join(ROOT, 'docs', 'generated-manifest.json')

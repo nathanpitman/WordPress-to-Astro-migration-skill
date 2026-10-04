@@ -1,6 +1,6 @@
 ---
 name: wordpress-to-astro
-version: 2.0.0
+version: 2.1.0
 description: Migrate a WordPress (or similar CMS) site to Astro by crawling the live public domain — no WordPress admin access needed. Rebuilds the site with SEO-identical markup for a zero-SEO-impact cutover, produces content maps shaped for Payload CMS, and ends with a verified local build to review. Use when the user invokes /wordpress-to-astro <domain> [--submit-forms] or asks to migrate, convert or move a WordPress site to Astro or a static site. Documents accessibility issues, errors and hard-coded internal links but never fixes them.
 ---
 
@@ -75,7 +75,7 @@ Each stage ends at a review gate: **stop and wait for the user to say "continue"
 | 11 Errors (record only) | [phases/11-errors.md](phases/11-errors.md) | `docs/errors.md` |
 | 12 Finishing and local review | [phases/12-finishing-and-local-review.md](phases/12-finishing-and-local-review.md) | clean build, local review server, README, `docs/index-YYYY-MM-DD-HHMM.md` (sections used in stages 4 and 5) |
 
-Also: [reference/feature-translation.md](reference/feature-translation.md) (what each common WordPress feature does, whether a static Astro site needs it, and the recommended Astro way), [reference/smoke-slice.md](reference/smoke-slice.md) (proving the chain on three pages first), [reference/tooling-contract.md](reference/tooling-contract.md) (the commands tooling should expose, so the model runs scripts rather than writing them), [reference/scale.md](reference/scale.md) (sampling and budgets for large sites), [reference/local-review.md](reference/local-review.md) (spec for `npm run review`), [reference/visual-comparison.md](reference/visual-comparison.md) (checking the local pages against the live site in a browser), [reference/extending.md](reference/extending.md) (how to change or extend this skill), and [reference-implementation/](reference-implementation/README.md) (working scripts from a real run, to copy and adapt).
+Also: [reference/feature-translation.md](reference/feature-translation.md) (what each common WordPress feature does, whether a static Astro site needs it, and the recommended Astro way), [reference/smoke-slice.md](reference/smoke-slice.md) (proving the chain on three pages first), [reference/tooling-contract.md](reference/tooling-contract.md) (the commands tooling should expose, so the model runs scripts rather than writing them), [reference/scale.md](reference/scale.md) (sampling and budgets for large sites), [reference/local-review.md](reference/local-review.md) (spec for `npm run review`), [reference/visual-comparison.md](reference/visual-comparison.md) (checking the local pages against the live site in a browser), [reference/interaction-checks.md](reference/interaction-checks.md) (pressing every filter, search, load-more and menu control on live and local, and building the re-fetch list from the live pages), [reference/extending.md](reference/extending.md) (how to change or extend this skill), and [reference-implementation/](reference-implementation/README.md) (working scripts from a real run, to copy and adapt).
 
 ## Tools and options
 
