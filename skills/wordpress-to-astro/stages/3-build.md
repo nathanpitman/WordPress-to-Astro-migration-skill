@@ -9,5 +9,6 @@
 - Build the verifier first (Phase 5, step 3) and run it after every step, not only at the end.
 - Send a short progress line between steps; do not stop for review between them. Stop early only for a blocking decision you cannot default safely (`policies/review-gates-and-decisions.md`).
 - Log every deviation as it arises in `docs/deviations.md`.
+- Before the gate, run the journey checks (`reference/interaction-checks.md`) for every interactive component built in this stage (listings, filters, search, load more, menus), on the local review server against the live site. A passing verifier proves the files match; it does not prove the page's controls reach them.
 
-**Gate: end of stage 3.** Checkpoint: pages built, verifier results (pages compared, pages differing, what the contract normalised), the deviations logged, assets (count, size, failures), listing variants and rewrite rules, the added artefacts (script, 404), the standard npm commands, recommended-fixes counts, and any open decisions. Next: Stage 4.
+**Gate: end of stage 3.** Checkpoint: pages built, verifier results (pages compared, pages differing, what the contract normalised), the deviations logged, assets (count, size, failures), listing variants and rewrite rules, the journey-check results (controls pressed on live and local, gaps found and fixed), the added artefacts (script, 404), the standard npm commands, recommended-fixes counts, and any open decisions. Next: Stage 4.

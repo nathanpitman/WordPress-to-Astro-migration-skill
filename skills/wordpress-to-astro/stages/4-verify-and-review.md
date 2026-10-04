@@ -4,8 +4,9 @@
 
 **Order**
 1. Run the verifier over every page (in batches if disk is tight), then the SEO check and the asset check against the same build. Fix genuine regressions in the build and re-run until the numbers are stable.
-2. Start the local review server, probe it as set out in Phase 12 section 2, and run the visual comparison if a browser tool is available. Classify every difference (hosting-layer artefact, genuine regression, defect of the original) and fix only genuine regressions.
+   Then re-fetch the live site (`recheck`) with the address list built from **both** the new site's own rule files and addresses derived from the live pages (form serialisations, pagination, links with query strings), and report any live-derived address no rule covers (`reference/interaction-checks.md`, section 4).
+2. Start the local review server, probe it as set out in Phase 12 section 2, and run the visual comparison and the journey checks (`reference/interaction-checks.md`) if a browser tool is available. Without one, replay the forms over HTTP and record what could not be checked. Classify every difference (hosting-layer artefact, genuine regression, defect of the original) and fix only genuine regressions.
 3. Finish Phase 11: the known cutover breakages list, the built-site asset result, and the themed 404 if it was not captured earlier.
 4. Stop the server.
 
-**Gate: end of stage 4.** Checkpoint: verification numbers (HTML, SEO, assets), the local review probe results, the visual comparison table with classified differences, defects of the original recorded, and any open decisions. Next: Stage 5.
+**Gate: end of stage 4.** Checkpoint: verification numbers (HTML, SEO, assets), the local review probe results, the visual comparison table with classified differences, the interaction (journey) results and any rule gaps, defects of the original recorded, and any open decisions. Next: Stage 5.
