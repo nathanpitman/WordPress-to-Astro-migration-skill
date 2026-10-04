@@ -1,6 +1,6 @@
 # WordPress to Astro migration skill
 
-![Status: alpha](https://img.shields.io/badge/status-alpha-orange) ![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue)
+![Status: alpha](https://img.shields.io/badge/status-alpha-orange) [![Smoke test](https://github.com/nathanpitman/WordPress-to-Astro-migration-skill/actions/workflows/smoke.yml/badge.svg)](https://github.com/nathanpitman/WordPress-to-Astro-migration-skill/actions/workflows/smoke.yml) ![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue)
 
 A [Claude Code](https://claude.com/claude-code) skill that migrates a live WordPress (or similar CMS) site to [Astro](https://astro.build) using only what is publicly reachable on the domain. No WordPress admin, database or API credentials are needed.
 
@@ -63,7 +63,7 @@ The reference implementation targets a typical WordPress setup. Treat it as a wo
 This project is **alpha**. It is published early, in the open, so that people can try it, break it and tell us how. What that means in practice:
 
 **What has been tested**
-- The full pipeline (crawl, build, verify, SEO check, asset check) runs end to end against the synthetic stock-WordPress site in `reference-implementation/test-fixture/` (`bash test-fixture/smoke.sh`).
+- The full pipeline (crawl, build, verify, SEO check, asset check) runs end to end against the synthetic stock-WordPress site in `reference-implementation/test-fixture/` (`bash test-fixture/smoke.sh`), and CI runs that on every push and pull request.
 - It has **not** been run against a range of real production sites, large sites, or non-WordPress CMSs. Claims of identical output are proven by the skill's own verification on each run, not by a track record.
 
 **Known limitations**
@@ -80,7 +80,6 @@ This project is **alpha**. It is published early, in the open, so that people ca
 **What would move it to beta**
 - Verified migrations of several real sites on different themes and plugin stacks, with the results written up
 - Reversals for the most common hosting layers
-- CI running the fixture smoke test
 
 If you try it on a real site, please [open an issue](https://github.com/nathanpitman/WordPress-to-Astro-migration-skill/issues) and say which theme, SEO plugin, forms and caching it used and how it went, good or bad. Use `example.com` rather than real client details.
 
