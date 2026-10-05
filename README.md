@@ -63,7 +63,7 @@ cp -r skills/wordpress-to-astro ~/.claude/skills/
 cp -r skills/wordpress-to-astro /path/to/your/project/.claude/skills/
 ```
 
-Then, in Claude Code, run `/wordpress-to-astro <domain>`. Add `--submit-forms` only if you want forms to be test-submitted (see warnings below).
+Then, in Claude Code, run `/wordpress-to-astro <domain>`. Add `--submit-forms` only if you want forms to be test-submitted (see warnings below). Add `--auto` to run start to finish without stopping for input: it assumes every recommended default and continues at every review gate (see the warning below).
 
 ## Updating an existing migration
 
@@ -111,6 +111,7 @@ If you try it on a real site, please [open an issue](https://github.com/nathanpi
 
 - **Only run this on sites you own or have written permission to migrate.** It crawls the target and downloads its assets.
 - **`--submit-forms` creates real form submissions** on the live site (using `@example.com` addresses). Leave it off unless you have agreed it with the site owner.
+- **`--auto` means nothing is reviewed along the way.** Every default is taken and every gate passed for you; the index lists what was assumed. Passing the domain counts as your authorisation to crawl it, so only use it on sites you own or may migrate.
 - The "suspicious code" handling flags and leaves out code that looks malicious. It is **not a malware scanner**; do not rely on it as one.
 - Review all output before cutover. The skill is provided as is, without warranty.
 

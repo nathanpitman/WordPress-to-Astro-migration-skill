@@ -1,6 +1,7 @@
 # Before starting
 
 - Confirm the domain and that crawling it is authorised. Use the domain's `robots.txt` crawl-delay and keep concurrency low.
+- With `--auto`, passing the domain counts as the authorisation, and passing `--auto` together with `--submit-forms` counts as the form-submission confirmation below. Still give the warning in your introduction (`policies/auto-mode.md`).
 - If `--submit-forms` is set, confirm once that the user owns the site or is authorised to test its forms, and warn that submissions may create real leads, notifications or emails on the site owner's side. Do not proceed to Phase 4 submissions without that confirmation.
 - Work in the current project directory. If it is not already an Astro project, scaffold one (static output) before Phase 5. Do not overwrite existing files without asking.
 - Keep a working crawl cache (raw HTML, headers, redirects) in `.crawl-cache/` and add it to `.gitignore`. All later phases read from the cache, so the live site is hit once per URL.

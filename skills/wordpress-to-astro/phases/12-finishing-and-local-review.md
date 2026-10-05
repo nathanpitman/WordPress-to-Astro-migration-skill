@@ -40,6 +40,7 @@ The index must contain:
 - **Run it locally:** the exact commands (install, build, review, verify), the address the review server uses, and what differs locally from production (see below)
 - A plain-English summary at the top: what was done, what to look at first, what is left
 - Links to every other file in `docs/`
+- With `--auto`, lead the index with the auto-mode summary (`policies/auto-mode.md`).
 - Headline numbers: pages crawled, unlinked pages found, content groups and entry counts, authors, forms (and shared field groups, and how many were submitted if `--submit-forms` was used), hard-coded internal links (distinct patterns and total occurrences), templates and components, accessibility findings by severity, security findings by confidence, and error counts by type
 - Verification results: pages rendered and compared, how many differ from the originals, what the comparison contract normalised, the SEO check, the asset check, the **local review check** and the **visual comparison** (both below)
 - The contents of `docs/deviations.md`, summarised, and a summary of `docs/recommended-fixes.md` (counts by type and phase, with the highest-impact entries listed first)

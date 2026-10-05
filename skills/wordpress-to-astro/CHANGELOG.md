@@ -12,6 +12,12 @@ Output effect: <none | docs only | source and rendered output may differ>
 New decisions: <questions or config keys added, with defaults, or "none">
 ```
 
+## 2.2.0 (2026-10-05) MINOR
+Affects phases: none (flow control only; Phase 0 intake and every stage gate)
+- New optional `--auto` flag: runs start to finish without stopping for input. Intake questions take their defaults, every gate is passed as "continue" (the checkpoint is still written), decisions take the recommended default and stay open in `docs/decisions.md`. Safe defaults only: subdomains out, suspected malicious code out, no unapproved deviations, forms submitted only with `--submit-forms`. Hard stops (no disk, crawler blocked, missing tool) still halt the run. New `policies/auto-mode.md`; the index leads with an auto-mode summary.
+Output effect: none (only how the run is driven; with `--auto` the index gains an auto-mode summary)
+New decisions: `options.auto` in `wordpress-to-astro.config.json` (default `false`)
+
 ## 2.1.1 (2026-10-05) PATCH
 Affects phases: none (Stage 1 smoke slice wording)
 - Smoke slice: its throwaway output (per-page extracts, shared fragments, any quick route) goes in a clearly named temporary folder with a `README.txt`, apart from real source, and the Stage 1 checkpoint says so. A reviewer browsing the project is otherwise left to guess whether the slice's layout is the intended structure.

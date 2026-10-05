@@ -1,6 +1,6 @@
 # Phase 0: Intake and baseline
 
-Run this once, after the go-ahead and before the Phase 1 crawl proper. Part of Stage 1 (`stages/1-discover.md`). **The intake questions are the one early stop**: ask them in one message and wait for the answers before crawling, because the answers change scope and tooling. The fingerprint, feature inventory and baseline then continue straight into the crawl; the gate comes at the end of Stage 1.
+Run this once, after the go-ahead and before the Phase 1 crawl proper. Part of Stage 1 (`stages/1-discover.md`). **The intake questions are the one early stop**: ask them in one message and wait for the answers before crawling, because the answers change scope and tooling. (With `--auto`, skip the questions: take every default listed below and record them as "default (auto)"; see `policies/auto-mode.md`.) The fingerprint, feature inventory and baseline then continue straight into the crawl; the gate comes at the end of Stage 1.
 
 **Write for a reader who does not know WordPress** (`policies/plain-language.md`). Every question below is asked in plain English, with the six-part pattern (what it is, why they have it, whether the new site needs it, options, recommendation and default, what it affects), kept short. Only questions that change the work are asked here; feature-specific questions come later, grounded in `docs/platform-features.md`.
 

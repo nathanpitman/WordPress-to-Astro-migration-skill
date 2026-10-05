@@ -10,7 +10,7 @@ Written in Stage 1 from the intake answers and the baseline; read by every scrip
 {
   "origin": "https://example.com",
   "gates": "stage",
-  "options": { "submitForms": false },
+  "options": { "submitForms": false, "auto": false },
   "crawl": { "delaySeconds": 0.6, "concurrency": 1, "userAgent": "wordpress-to-astro (Claude Code; run by <user>; crawling example.com)" },
   "hostingLayers": [ "wp-rocket", "cloudflare" ],
   "volatileTokens": [ "wp-nonce", "gravityforms-state" ],
