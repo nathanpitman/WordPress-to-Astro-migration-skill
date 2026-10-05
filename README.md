@@ -12,6 +12,12 @@ The goal is a clean cutover with **zero SEO impact**: the rendered HTML of every
 
 > **Status: alpha.** The method (crawl, rebuild, then verify every page against the live site) is stable and the pipeline runs end to end on a synthetic WordPress site. It has not yet been proven on a range of real sites. See [Status and known limitations](#status-and-known-limitations) before pointing it at anything that matters, and expect to adapt the reference scripts to the stack you find.
 
+## Progress at a glance
+
+![The optional progress band above the Claude Code prompt: a bar of finished phases, the five stages with their state, and the phases of the current stage](mods/wordpress-to-astro-progress/progress-band.jpg)
+
+A run has five stages and 13 phases, with a review gate between stages. The optional [progress band](mods/wordpress-to-astro-progress/README.md) keeps your position in view while you work: the green bar is finished phases out of 13 (with open decisions beside it), the middle row is the five stages (`✓` done, `●` current, `○` not started), and the last row is the phases of the current stage. It reads the skill's own `docs/run-state.json`, so it needs no setup beyond loading the mod. *This image is an illustration rendered from the mod's layout and colours (an example run, mid Stage 3), not a capture of the live interface.*
+
 ## What it does
 
 - Crawls the site politely, identifying itself honestly, and records the site structure, redirects and unlinked pages
@@ -45,10 +51,6 @@ Then, in Claude Code, run `/wordpress-to-astro <domain>`. Add `--submit-forms` o
 ## Updating an existing migration
 
 The skill is versioned (`version` in `SKILL.md`, history in `CHANGELOG.md`). When you run it against a project built by an older version, it reads the changelog, works out which phases are stale, and offers to re-run just those, keeping any files you have edited by hand. See `policies/updating-a-run.md`.
-
-## Optional: progress band
-
-[`mods/wordpress-to-astro-progress/`](mods/wordpress-to-astro-progress/README.md) is a small Claude Code mod that shows the five stages, the current stage's phases and an overall progress bar above the prompt while a run is in progress, read from `docs/run-state.json`. It is optional and separate from the skill (it is not copied with the skill folder).
 
 ## Contents
 
