@@ -1,6 +1,6 @@
 ---
 name: wordpress-to-astro
-version: 2.1.0
+version: 2.1.1
 description: Migrate a WordPress (or similar CMS) site to Astro by crawling the live public domain — no WordPress admin access needed. Rebuilds the site with SEO-identical markup for a zero-SEO-impact cutover, produces content maps shaped for Payload CMS, and ends with a verified local build to review. Use when the user invokes /wordpress-to-astro <domain> [--submit-forms] or asks to migrate, convert or move a WordPress site to Astro or a static site. Documents accessibility issues, errors and hard-coded internal links but never fixes them.
 ---
 
