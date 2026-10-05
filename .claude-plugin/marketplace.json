@@ -1,0 +1,20 @@
+{
+  "name": "wordpress-to-astro",
+  "owner": {
+    "name": "Nathan Pitman"
+  },
+  "metadata": {
+    "description": "Claude Code skill that migrates a live WordPress site to Astro with zero SEO impact."
+  },
+  "plugins": [
+    {
+      "name": "wordpress-to-astro",
+      "source": "./",
+      "description": "Migrate a WordPress (or similar CMS) site to Astro by crawling the live public domain, with SEO-identical markup and Payload-shaped content maps.",
+      "version": "2.1.0",
+      "license": "MIT",
+      "keywords": ["wordpress", "astro", "migration", "seo", "payload"],
+      "skills": ["./skills/wordpress-to-astro"]
+    }
+  ]
+}
