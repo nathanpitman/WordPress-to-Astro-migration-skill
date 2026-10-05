@@ -30,6 +30,23 @@ The goal is a clean cutover with **zero SEO impact**: the rendered HTML of every
 
 ## Install
 
+### With npx (any supported agent)
+
+```bash
+npx skills add nathanpitman/WordPress-to-Astro-migration-skill
+```
+
+The CLI asks which agent to install for and whether to install per project or globally.
+
+### As a Claude Code plugin
+
+```
+/plugin marketplace add nathanpitman/WordPress-to-Astro-migration-skill
+/plugin install wordpress-to-astro@wordpress-to-astro
+```
+
+### Manually
+
 Copy the skill folder into your Claude Code skills directory.
 
 ```bash
