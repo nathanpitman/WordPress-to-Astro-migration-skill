@@ -12,6 +12,8 @@ The run is organised in **five stages**. **Stop at the end of every stage for th
 
 **Gate mode.** The default is `--gates=stage` (above). With `--gates=phase` (set in `$ARGUMENTS` or chosen at intake) treat every phase as a stage of its own and stop after each, as the skill originally did. Record the mode in `wordpress-to-astro.config.json`.
 
+**Auto mode.** With `--auto` (`policies/auto-mode.md`) do every step of "At each gate" except the last: write the checkpoint, take the recommended default for each decision (recorded as "default (auto)", still open), and continue to the next stage without waiting. Mid-stage stops for decisions become open decisions with the faithful default; only the hard stops in `policies/auto-mode.md` still halt the run.
+
 ## Stopping inside a stage
 
 Stop mid-stage only when:

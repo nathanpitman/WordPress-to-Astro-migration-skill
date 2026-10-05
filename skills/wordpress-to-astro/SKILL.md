@@ -1,7 +1,7 @@
 ---
 name: wordpress-to-astro
-version: 2.1.1
-description: Migrate a WordPress (or similar CMS) site to Astro by crawling the live public domain — no WordPress admin access needed. Rebuilds the site with SEO-identical markup for a zero-SEO-impact cutover, produces content maps shaped for Payload CMS, and ends with a verified local build to review. Use when the user invokes /wordpress-to-astro <domain> [--submit-forms] or asks to migrate, convert or move a WordPress site to Astro or a static site. Documents accessibility issues, errors and hard-coded internal links but never fixes them.
+version: 2.2.0
+description: Migrate a WordPress (or similar CMS) site to Astro by crawling the live public domain — no WordPress admin access needed. Rebuilds the site with SEO-identical markup for a zero-SEO-impact cutover, produces content maps shaped for Payload CMS, and ends with a verified local build to review. Use when the user invokes /wordpress-to-astro <domain> [--submit-forms] [--auto] or asks to migrate, convert or move a WordPress site to Astro or a static site. Documents accessibility issues, errors and hard-coded internal links but never fixes them.
 ---
 
 # WordPress to Astro migration
@@ -38,6 +38,7 @@ Read these before making any request, then keep to them throughout:
 | [policies/crawler-identity-and-scope.md](policies/crawler-identity-and-scope.md) | the User-Agent, host scope, subdomains, WordPress admin URLs |
 | [policies/suspicious-code.md](policies/suspicious-code.md) | what to flag, how to record it, why it is never recreated |
 | [policies/review-gates-and-decisions.md](policies/review-gates-and-decisions.md) | the five stages and their gates, the checkpoint template, when to stop mid-stage, recording decisions |
+| [policies/auto-mode.md](policies/auto-mode.md) | `--auto`: what is assumed, what still never happens, the hard stops |
 | [policies/run-state.md](policies/run-state.md) | `wordpress-to-astro.config.json`, `docs/run-state.json`, resuming a run |
 | [policies/updating-a-run.md](policies/updating-a-run.md) | re-running an existing migration after the skill changes: version stamps, stale phases, hand-edit protection, crawl freshness |
 | [policies/record-only.md](policies/record-only.md) | what "record, never repair" means in practice |
@@ -87,6 +88,7 @@ Helper scripts that ship in the skill's own folder (crawler, page splitter, veri
 
 - `--submit-forms` (off by default): submit each distinct form once using dummy data to capture the full form flow. See Phase 4. Without this flag, never submit a form.
 - `--gates=stage|phase` (default `stage`): stop at the end of each of the five stages, or after every phase. See `policies/review-gates-and-decisions.md`.
+- `--auto` (off by default): run from start to finish without stopping for user input. Assumes every recommended default and treats every gate as "continue". Safe defaults only; see `policies/auto-mode.md`.
 
 ## Introduction on invocation
 
@@ -95,9 +97,9 @@ As soon as the skill is invoked, before making any request to the site, give the
 1. **The stages.** The five stages (Discover, Analyse, Build, Verify and review, Finish) in order, one line each, that it pauses for review at the end of each stage and resumes when the user says "continue", and that the user can choose `--gates=phase` to be asked after every phase instead.
 2. **How the crawler identifies itself.** The exact User-Agent string it will send (see `policies/crawler-identity-and-scope.md`), so the user can recognise it in the site's logs.
 3. **The outcome.** What the user will have at the end: the `docs/` folder (baseline, site structure, content map, authors, forms, templates, SEO inventory, accessibility report, errors, security findings, running list of recommended fixes, decisions and a timestamped index), plus an Astro project with layouts, components, styles and assets that reproduce the site's markup exactly, the host-level data needed for cutover (redirects, rewrites, headers), and **a local build they can start with one command and review in a browser**.
-4. **Options in force.** Whether `--submit-forms` is on or off (without it no form is ever submitted) and the gate mode.
+4. **Options in force.** Whether `--submit-forms` is on or off (without it no form is ever submitted), the gate mode, and whether `--auto` is on (no stops, defaults assumed).
 
-Keep it to a short screenful. End by asking the user to confirm the domain and authorisation (see `policies/before-starting.md`) and wait for the go-ahead before the first request.
+Keep it to a short screenful. End by asking the user to confirm the domain and authorisation (see `policies/before-starting.md`) and wait for the go-ahead before the first request. With `--auto`, do not ask or wait: say that auto mode is on, that passing the domain counts as the authorisation, and start (`policies/auto-mode.md`).
 
 ## Definition of done
 
@@ -117,7 +119,7 @@ A run is complete only when the user can clone the project, install, run **`npm 
 - Never request a subdomain without the user's explicit yes, and never request WordPress admin or system URLs.
 - Never recreate, execute, fetch or follow code or links flagged as malicious or deceptive. Highlight them and record them in `docs/security-findings.md`.
 - Never put a WordPress-specific question to the user without a plain-English explanation of what the feature does, whether the new site needs it, and a recommendation (`policies/plain-language.md`).
-- Never start the next stage without the user's go-ahead (or the next phase in `--gates=phase` mode).
+- Never start the next stage without the user's go-ahead (or the next phase in `--gates=phase` mode). With `--auto` the go-ahead is given in advance, but the checkpoint is still written at every gate.
 - Keep `wordpress-to-astro.config.json` and `docs/run-state.json` current so a run can be resumed.
 - Never run a generator that deletes hand-maintained files. Generated and hand-maintained data live apart.
 - Never start a large download or build without checking free disk space first.
