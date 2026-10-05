@@ -46,6 +46,10 @@ Then, in Claude Code, run `/wordpress-to-astro <domain>`. Add `--submit-forms` o
 
 The skill is versioned (`version` in `SKILL.md`, history in `CHANGELOG.md`). When you run it against a project built by an older version, it reads the changelog, works out which phases are stale, and offers to re-run just those, keeping any files you have edited by hand. See `policies/updating-a-run.md`.
 
+## Optional: progress band
+
+[`mods/wordpress-to-astro-progress/`](mods/wordpress-to-astro-progress/README.md) is a small Claude Code mod that shows the five stages, the current stage's phases and an overall progress bar above the prompt while a run is in progress, read from `docs/run-state.json`. It is optional and separate from the skill (it is not copied with the skill folder).
+
 ## Contents
 
 | Path | Purpose |
@@ -55,6 +59,7 @@ The skill is versioned (`version` in `SKILL.md`, history in `CHANGELOG.md`). Whe
 | `skills/wordpress-to-astro/policies/` | Crawler identity and scope, run state, review gates, suspicious code, and more |
 | `skills/wordpress-to-astro/reference/` | Background and contracts (tooling, output layout, visual comparison, scale) |
 | `skills/wordpress-to-astro/reference-implementation/` | Config-driven Python/Node scripts and Astro files for a typical WordPress site, with a synthetic test site, to copy and adapt |
+| `mods/wordpress-to-astro-progress/` | Optional Claude Code mod: a stage, phase and progress band driven by `docs/run-state.json` |
 
 The reference implementation targets a typical WordPress setup. Treat it as a worked example to copy and adapt, not an authoritative tool.
 

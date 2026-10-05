@@ -1,0 +1,10 @@
+{
+  "name": "wordpress-to-astro-progress",
+  "version": "0.1.0",
+  "description": "A band above the prompt that shows the wordpress-to-astro skill's stages, phases and progress, read from docs/run-state.json.",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "Nathan Pitman"
+  },
+  "repository": "https://github.com/nathanpitman/WordPress-to-Astro-migration-skill"
+}
