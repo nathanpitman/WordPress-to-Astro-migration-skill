@@ -2,7 +2,7 @@
 
 An optional [Claude Code mod](https://claude.com/blog/claude-code-mods): a band above the prompt that shows where a `wordpress-to-astro` run is, at a glance. The skill works the same without it.
 
-![The progress band, an illustration of an example run](progress-band.jpg)
+![The progress band, an illustration of an example run](progress-band.png)
 
 ```
 wordpress-to-astro · example.com · ███████████████░░░░░ 10/13 phases   2 open decisions   [Hide]

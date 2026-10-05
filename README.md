@@ -14,7 +14,7 @@ The goal is a clean cutover with **zero SEO impact**: the rendered HTML of every
 
 ## Progress at a glance
 
-![The optional progress band above the Claude Code prompt: a bar of finished phases, the five stages with their state, and the phases of the current stage](mods/wordpress-to-astro-progress/progress-band.jpg)
+![The optional progress band above the Claude Code prompt: a bar of finished phases, the five stages with their state, and the phases of the current stage](mods/wordpress-to-astro-progress/progress-band.png)
 
 A run has five stages and 13 phases, with a review gate between stages. The optional [progress band](mods/wordpress-to-astro-progress/README.md) keeps your position in view while you work: the green bar is finished phases out of 13 (with open decisions beside it), the middle row is the five stages (`✓` done, `●` current, `○` not started), and the last row is the phases of the current stage. It reads the skill's own `docs/run-state.json`, so it needs no setup beyond loading the mod. *This image is an illustration rendered from the mod's layout and colours (an example run, mid Stage 3), not a capture of the live interface.*
 
