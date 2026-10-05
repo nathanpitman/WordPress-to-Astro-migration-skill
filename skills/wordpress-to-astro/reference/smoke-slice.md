@@ -18,3 +18,7 @@ Take them from the crawl cache: the home page, one single entry (a post, product
 ## Outcome
 
 Record the result in `docs/baseline.md` under "Smoke slice": what was adjusted, the final reversal classes and masks, anything that could not be made to pass, and any control whose submitted address the rules did not yet cover. If the slice cannot be made to pass after a reasonable effort, **stop at the Stage 1 gate and say so**; do not proceed to the bulk build on an unproven contract.
+
+## Keep the scaffold obviously temporary
+
+The smoke slice proves the chain; it is not the final structure. Write its output (per-page extracts, shared fragments, any quick Astro route) to a clearly named throwaway folder such as `src/_TEMP-smoke-slice/`, put a `README.txt` in it saying it is temporary, who regenerates it and when it is deleted (Stage 3, Phase 5), and keep it apart from real source such as `src/data/` (hand-maintained cutover data) and `src/content/`. Say so in the Stage 1 checkpoint, so a reviewer browsing the folders is not misled into thinking the slice's one-folder-per-page layout is the intended design. The real source structure is built in Phase 5, from the content map.

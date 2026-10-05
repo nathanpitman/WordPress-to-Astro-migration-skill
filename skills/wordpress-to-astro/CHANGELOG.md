@@ -12,6 +12,12 @@ Output effect: <none | docs only | source and rendered output may differ>
 New decisions: <questions or config keys added, with defaults, or "none">
 ```
 
+## 2.1.1 (2026-10-05) PATCH
+Affects phases: none (Stage 1 smoke slice wording)
+- Smoke slice: its throwaway output (per-page extracts, shared fragments, any quick route) goes in a clearly named temporary folder with a `README.txt`, apart from real source, and the Stage 1 checkpoint says so. A reviewer browsing the project is otherwise left to guess whether the slice's layout is the intended structure.
+Output effect: none (the slice's scratch folder is named and documented; nothing the later stages produce changes)
+New decisions: none
+
 ## 2.1.0 (2026-10-04) MINOR
 Affects phases: 0, 8 (and the Stage 1 smoke slice, the Stage 3 gate and the Stage 4 verification)
 - Phase 8: query-string addresses are now derived from what the page's own controls submit (a browser's serialisation of every form, including empty text inputs and default options, crossed with every option and page index), not from the parameter names noticed in the markup. A form with a filter and a search box always submits both, so a filter click arrives with an empty search value; rewrite rules must exist for those addresses, and a gap fails silently by serving the unfiltered page.
