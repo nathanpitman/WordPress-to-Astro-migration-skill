@@ -102,10 +102,26 @@ def mask(t):
     return t
 
 
+# elements whose edges break the text flow, so whitespace next to them never reaches the rendered text
+_BLOCK = set('''html head body title meta link base script style noscript template address article aside blockquote
+br details dialog dd div dl dt fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 header hgroup hr li main
+nav ol p pre section summary table caption colgroup col thead tbody tfoot tr td th ul option optgroup select
+iframe video audio source track picture svg canvas'''.split())
+_GAP = re.compile(r'<(/?)([a-zA-Z][\w:-]*)[^>]*>( )(?=<(/?)([a-zA-Z][\w:-]*))')
+
+
+def _gap(m):
+    """drop a space between two tags only at a block edge; between inline tags it is a word break and must match"""
+    return m.group(0)[:-1] if m.group(2).lower() in _BLOCK or m.group(5).lower() in _BLOCK else m.group(0)
+
+
 def norm(t):
-    """Whitespace-insignificant comparison form (also drops the TODO(manual) form comments and the approved search script tag we add)."""
+    """Whitespace-insignificant comparison form (also drops the TODO(manual) form comments and the approved search script tag we add).
+    Runs of whitespace collapse to one space, but a space between two inline tags is kept: `</a> <a>` renders a word
+    break that `</a><a>` does not, and that changes the indexed text."""
     t = re.sub(r'<!-- TODO\(manual\):[^>]*-->', '', t)
     t = re.sub(r'<!-- Static-host search/filter script[^>]*-->\s*<script[^>]*src="/js/site-search\.js"[^>]*></script>', '', t)
     t = re.sub(r'\s+', ' ', t)
-    t = re.sub(r'>\s+<', '><', t)
+    t = re.sub(r'> (?=<!--)|(?<=-->) <', lambda m: m.group(0).replace(' ', ''), t)
+    t = _GAP.sub(_gap, t)
     return t.strip()
